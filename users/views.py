@@ -13,12 +13,12 @@ from rest_framework.reverse import reverse
 @permission_classes([permissions.AllowAny])
 def api_root(request, format=None):
     return Response({
-        
-        'users' : reverse('user-list', request=request, format=format)
+        'users' : reverse('user-detail', request=request, format=format),
+        'question' : reverse('question-detail', request=request, format=format)
     })
 
 class UserListView(APIView):
-    permission_classes =[permissions.IsAuthenticated]
+    permission_classes =[permissions.IsAuthenticatedOrReadOnly]
     
     def get(self, request):
         user = User.objects.all()
