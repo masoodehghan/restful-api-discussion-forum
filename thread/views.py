@@ -1,8 +1,8 @@
 from urllib import response
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import QuestionSerializer
-from .models import Question
+from .serializers import AnswerSerializer, QuestionSerializer
+from .models import Answer, Question
 from rest_framework import permissions, status
 from django.utils.text import slugify
 from .permissions import IsOwnerOrReadOnly
@@ -36,7 +36,8 @@ class QuestionCreateView(APIView):
 
         
 class QuestionDetailView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, 
+                          IsOwnerOrReadOnly]
     
     def get_object(self, slug):
         try:
@@ -70,3 +71,48 @@ class QuestionDetailView(APIView):
         self.check_object_permissions(request, question)
         question.delete()
         return Response({'message':'question deleted!'}, status.HTTP_204_NO_CONTENT)
+    
+
+class AnswerDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated,
+                          IsOwnerOrReadOnly]
+    
+    
+
+    def post(self, request, slug, **args):
+        question = Question.objects.get(slug=slug)
+        owner = request.user
+        
+        serializer = AnswerSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save(question=question, owner=owner)
+            
+            return Response({
+                'data':serializer.data,
+                'message':'answer created!'
+                }, status.HTTP_201_CREATED)
+            
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        
+        
+    def delete(self, request, pk, **kwargs):
+        answer = Answer.objects.get(id=pk)
+        self.check_object_permissions(request, answer)
+        answer.delete()
+        
+        return Response({'message':'answer deleted.'}, status.HTTP_204_NO_CONTENT)
+    
+    
+    def put(self, request, pk, **args):
+        answer = Answer.objects.get(id=pk)
+        self.check_object_permissions(request, answer)
+        serializer = AnswerSerializer(answer, request.data, many=False)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'data':serializer.data,
+                             'message':'answer updated.'}, status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)

@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from .models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializations import UserSerializer
+from .serializers import UserSerializer
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.reverse import reverse
