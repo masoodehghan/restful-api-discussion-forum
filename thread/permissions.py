@@ -7,3 +7,11 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
         
         return obj.owner == request.user
+
+class CustomIsAdminUser(permissions.BasePermission):
+    
+    def has_permission(self, request, view):
+        METHOD = ['POST']
+        if request.method in METHOD and request.user.is_staff:
+            return True
+        return False

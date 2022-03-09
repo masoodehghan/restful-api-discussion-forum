@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Answer, Question
+from .models import Answer, Question, Tag
 from users.serializers import UserSerializer
 
 class AnswerSerializer(serializers.ModelSerializer):
@@ -13,13 +13,19 @@ class AnswerSerializer(serializers.ModelSerializer):
         return serialize.data['email']
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = '__all__'
+
 class QuestionSerializer(serializers.ModelSerializer):
     owner = serializers.SerializerMethodField()
     answers = serializers.SerializerMethodField()
     
+    
     class Meta:
         model = Question
-        fields = ['id', 'title', 'body', 'slug', 'owner', 'create_time', 'answers']
+        fields = ['id', 'title', 'body', 'slug', 'owner', 'create_time', 'answers', 'tags']
         read_only_fields = ['id']
         
     def get_owner(self, obj):

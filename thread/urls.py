@@ -10,5 +10,8 @@ urlpatterns = [
     
     path('answer/<slug:slug>', views.AnswerDetailView.as_view(), name='answer-create'),
     path('answer/<int:pk>/', views.AnswerDetailView.as_view(), name='answer-delete'),
-    path('answer/<int:pk>/', views.AnswerDetailView.as_view(), name='answer-update')
+    path('answer/<int:pk>/', views.AnswerDetailView.as_view(), name='answer-update'),
+    
+    path('tag/create', views.TagView.as_view(), name='tag-create'),
+    path('tag/<slug:slug>', views.TagView.as_view(), name='question-list-by-tag')
 ]

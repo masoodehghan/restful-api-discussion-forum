@@ -14,6 +14,7 @@ class Question(models.Model):
     id = models.BigAutoField(primary_key=True, unique=True, editable=False)
     create_time = models.DateTimeField(auto_now_add=True)
     
+    tags = models.ManyToManyField('Tag', null=True, blank=True, related_name='questions')
     best_answer_id = models.OneToOneField('Answer', 
                                           on_delete=models.CASCADE, 
                                           null=True, 
@@ -41,4 +42,12 @@ class Answer(models.Model):
     def get_absolute_url(self):
         return reverse("answer-detail", kwargs={"pk": self.id})
     
+
+class Tag(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True, blank=True)
+    
+    
+    def __str__(self):
+        return self.name
     

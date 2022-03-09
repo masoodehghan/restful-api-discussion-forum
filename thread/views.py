@@ -1,11 +1,12 @@
 from urllib import response
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import AnswerSerializer, QuestionSerializer
-from .models import Answer, Question
+from .serializers import AnswerSerializer, QuestionSerializer, TagSerializer
+from .models import Answer, Question, Tag
 from rest_framework import permissions, status
 from django.utils.text import slugify
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, CustomIsAdminUser
 
 
    
@@ -16,7 +17,7 @@ class QuestionListVIew(APIView):
     
     def get(self, request, **args):
         questions = Question.objects.all()
-        serializer = QuestionSerializer(questions, many=True, context={'request':request})
+        serializer = QuestionSerializer(questions, many=True)
         
         return Response(serializer.data)
     
@@ -116,3 +117,30 @@ class AnswerDetailView(APIView):
                              'message':'answer updated.'}, status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        
+
+class TagView(APIView):
+    permission_classes =  [permissions.IsAuthenticatedOrReadOnly,
+                           CustomIsAdminUser]
+                          
+    
+    def post(self, request, **args):
+        
+        self.check_permissions(request=request)
+        serializer = TagSerializer(data=request.data, many=False)
+        
+        if serializer.is_valid():
+            serializer.save(slug=slugify(serializer.validated_data['name']))
+            return Response({'message':'Tag created.'}, status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        
+    def get(self, request, slug, **args):
+        question = Question.objects.filter(tags__slug=slug)
+        
+        serializer = QuestionSerializer(question, many=True)
+        
+        return Response(serializer.data, status.HTTP_200_OK)
+    
+    
+    
