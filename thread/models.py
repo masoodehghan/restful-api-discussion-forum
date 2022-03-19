@@ -14,12 +14,15 @@ class Question(models.Model):
     id = models.BigAutoField(primary_key=True, unique=True, editable=False)
     create_time = models.DateTimeField(auto_now_add=True)
     
-    tags = models.ManyToManyField('Tag', null=True, blank=True, related_name='questions')
+    tags = models.ManyToManyField('Tag', blank=True, related_name='questions')
     best_answer_id = models.OneToOneField('Answer', 
                                           on_delete=models.CASCADE, 
                                           null=True, 
                                           blank=True, 
                                           related_name='best_answer')
+    
+    class Meta:
+        ordering = ['-best_answer_id']
     
     
     def __str__(self):
@@ -36,12 +39,13 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
     
+    
     def __str__(self):
         return self.content[:40]
     
     def get_absolute_url(self):
         return reverse("answer-detail", kwargs={"pk": self.id})
-    
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=100)

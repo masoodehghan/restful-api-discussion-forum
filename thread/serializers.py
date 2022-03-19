@@ -25,7 +25,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Question
-        fields = ['id', 'title', 'body', 'slug', 'owner', 'create_time', 'answers', 'tags']
+        fields = ['id', 'title', 'body', 'slug', 'owner', 'create_time', 'answers', 'tags', 'best_answer_id']
         read_only_fields = ['id']
         
     def get_owner(self, obj):

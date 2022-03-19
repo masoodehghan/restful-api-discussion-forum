@@ -143,4 +143,18 @@ class TagView(APIView):
         return Response(serializer.data, status.HTTP_200_OK)
     
     
+class BestAnswerView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     
+    def put(self, request, slug, **args):
+        question = Question.objects.get(slug=slug)
+        
+        if request.data.get('answer'):
+            
+            answer = Answer.objects.get(id=request.data['answer'])
+            question.best_answer_id = answer
+            question.save()
+        
+            return Response({'message':'best answer submited'}, status.HTTP_200_OK)
+        else:
+            return  Response({'message':'answer not specified!'}, status.HTTP_400_BAD_REQUEST)
