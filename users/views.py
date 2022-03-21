@@ -39,3 +39,15 @@ class SignupUserView(APIView):
         
         return Response({'message':'user created successfully!'}, status.HTTP_201_CREATED)
     
+
+class UserDetail(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get(self, request, pk, **args):
+        user = User.objects.get(id=pk)
+        
+        serializer = UserSerializer(user, many=False, context={'request':request})
+        
+        return Response(serializer.data, status.HTTP_200_OK)
+        
+    
