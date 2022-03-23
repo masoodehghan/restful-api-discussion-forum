@@ -1,5 +1,3 @@
-from urllib import response
-from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import AnswerSerializer, QuestionSerializer, TagSerializer
@@ -28,7 +26,7 @@ class QuestionCreateView(APIView):
         serializer = QuestionSerializer(data=request.data, context={'request':request})
         
         if serializer.is_valid():
-            serializer.save(owner=request.user, slug=slugify(serializer.validated_data['title']))
+            serializer.save(owner=request.user)
             return Response({'message':'question created.',
                              'data':serializer.data}, status.HTTP_201_CREATED)
         else:
@@ -83,6 +81,7 @@ class AnswerDetailView(APIView):
     def post(self, request, slug, **args):
         question = Question.objects.get(slug=slug)
         owner = request.user
+        
         
         serializer = AnswerSerializer(data=request.data)
         
