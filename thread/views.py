@@ -5,7 +5,7 @@ from .models import Answer, Question, Tag
 from rest_framework import permissions, status
 from django.utils.text import slugify
 from .permissions import IsOwnerOrReadOnly, CustomIsAdminUser
-
+from django.db.models import Q
 
    
 
@@ -14,8 +14,20 @@ class QuestionListVIew(APIView):
     
     
     def get(self, request, **args):
-        questions = Question.objects.all()
-        serializer = QuestionSerializer(questions, many=True)
+        
+        q = ''   # q is serach query
+
+        if request.GET.get('q'):
+            q = request.GET.get('q')
+        
+        tags = Tag.objects.filter(name__icontains=q)
+        
+        question = Question.objects.filter(Q(title__icontains=q) | 
+                                           Q(tags__in=tags) | 
+                                           Q(body__icontains=q))
+        
+        
+        serializer = QuestionSerializer(question, many=True)
         
         return Response(serializer.data)
     
@@ -59,7 +71,7 @@ class QuestionDetailView(APIView):
         
         serializer = QuestionSerializer(question, data=request.data, many=False)
         if serializer.is_valid(raise_exception=True):
-            serializer.save(slug=slugify(serializer.validated_data['title']))
+            serializer.save()
             return Response(serializer.data, status.HTTP_200_OK)
         
         else:
