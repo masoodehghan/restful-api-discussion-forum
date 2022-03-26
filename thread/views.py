@@ -22,9 +22,12 @@ class QuestionListVIew(APIView):
         
         tags = Tag.objects.filter(name__icontains=q)
         
-        question = Question.objects.filter(Q(title__icontains=q) | 
-                                           Q(tags__in=tags) | 
-                                           Q(body__icontains=q))
+        question = Question.objects.distinct().filter(
+                                            Q(title__icontains=q) | 
+                                            Q(tags__name__icontains=q) | 
+                                            Q(owner__first_name__icontains=q) | 
+                                            Q(owner__email__icontains=q)
+                                            )
         
         
         serializer = QuestionSerializer(question, many=True)
