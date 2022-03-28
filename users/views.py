@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from .models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import UserSerializer
+from .serializers import UserSerializer, PasswordSerializer
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.reverse import reverse
@@ -50,4 +50,33 @@ class UserDetail(APIView):
         
         return Response(serializer.data, status.HTTP_200_OK)
         
+    def put(self, request, **args):
+        user = request.user
+        
+        serializer = UserSerializer(instance=user, data=request.data, many=False, context={'request':request})
+        
+        if serializer.is_valid():
+            serializer.save(email=user.email)
+            
+            return Response({'message':'user updated.', 'data':serializer.data}, status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+class ChangePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        serializer = PasswordSerializer(data=request.data, many=False)
+        
+        if serializer.is_valid():
+            
+            if not user.check_password(serializer.data.get('old_password')):
+                return Response({'old_password': ['Wrong Password']}, status.HTTP_400_BAD_REQUEST)
+            
+            user.set_password(serializer.data.get('new_password'))
+            user.save()
+            return Response({'message':'password changed.', 'data':[]}, status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+            

@@ -31,7 +31,7 @@ class Question(models.Model):
 
 class Answer(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                                blank=True, related_name='answers')
+                                null=True, blank=True, related_name='answers')
     
     id = models.BigAutoField(primary_key=True, editable=False, unique=True)
     
