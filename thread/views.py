@@ -3,7 +3,6 @@ from rest_framework.views import APIView
 from .serializers import AnswerSerializer, QuestionSerializer, TagSerializer
 from .models import Answer, Question, Tag
 from rest_framework import permissions, status
-from django.utils.text import slugify
 from .permissions import IsOwnerOrReadOnly, CustomIsAdminUser
 from django.db.models import Q
 
@@ -144,7 +143,7 @@ class TagView(APIView):
         serializer = TagSerializer(data=request.data, many=False)
         
         if serializer.is_valid():
-            serializer.save(slug=slugify(serializer.validated_data['name']))
+            serializer.save()
             return Response({'message':'Tag created.'}, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
