@@ -3,7 +3,7 @@ from django.db import models
 from django.urls import reverse
 
 class Question(models.Model):
-    title = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=50)
     body = models.TextField()
     slug = models.SlugField(max_length=50, null=True, blank=True)
     

@@ -20,7 +20,6 @@ class QuestionListVIew(APIView):
         if request.GET.get('q'):
             q = request.GET.get('q')
         
-        tags = Tag.objects.filter(name__icontains=q)
         
         question = Question.objects.distinct().filter(
                                             Q(title__icontains=q) | 
@@ -38,7 +37,7 @@ class QuestionCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request, **args):
-        serializer = QuestionSerializer(data=request.data, context={'request':request})
+        serializer = QuestionSerializer(data=request.data)
         
         if serializer.is_valid():
             serializer.save(owner=request.user)
