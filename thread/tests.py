@@ -7,11 +7,12 @@ class QuestionTest(test.APITestCase):
     
     api_client = test.APIClient()
     
-    def setUp(self):
-        self.user = User.objects.create_user(email='masood@test.com', password='m12457896')
+    @classmethod
+    def setUpTestData(self):
+        self.user = User.objects.create_user(email='ali@test.com', password='m12457896')
         self.user_2 = User.objects.create_user(email='test@test.com', password='m12457896')
         self.tag = Tag.objects.create(name='Test Tag', slug='test-tag')
-        self.question = Question.objects.create(title='test', body='test body', slug='test', owner=self.user)
+        self.question = Question.objects.create(title='test', body='test body', owner=self.user)
         self.question.tags.add(self.tag)
         self.answer = Answer.objects.create(content='test body answer', question=self.question, owner=self.user_2)
         
@@ -62,9 +63,11 @@ class QuestionTest(test.APITestCase):
         self.assertNotEqual(response.data['title'], question.title)
         
     def test_question_delete(self):
+        
         question = self.question
         token = self.login_with_token(self.user)
         self.api_client.force_authenticate(user=self.user, token=token)
+        
         url = reverse('question-detail', kwargs={'slug':question.slug})
         response = self.api_client.delete(url)
         
@@ -97,3 +100,14 @@ class QuestionTest(test.APITestCase):
         self.api_client.force_authenticate(user=self.user_2, token=token)
         response = self.api_client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+    def test_best_answer(self):
+        token = self.login_with_token(self.user)
+        url = reverse('best-answer', kwargs={'slug':self.question.slug, 'answer_pk':self.answer.id})
+        self.api_client.force_authenticate(self.user, token)
+        response = self.api_client.put(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'best answer submited')
+        
+        

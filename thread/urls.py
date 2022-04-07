@@ -11,6 +11,6 @@ urlpatterns = [
     
     path('tag/create', views.TagView.as_view(), name='tag-create'),
     path('tag/<slug:slug>', views.TagView.as_view(), name='question-list-by-tag'),
-    path('question/best-answer/<slug:slug>', views.BestAnswerView.as_view(), name='best-answer'),
+    path('question/best-answer/<slug:slug>/<int:answer_pk>/', views.BestAnswerView.as_view(), name='best-answer'),
     
 ]

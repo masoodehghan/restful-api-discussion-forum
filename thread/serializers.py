@@ -21,7 +21,7 @@ class TagSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     owner = serializers.SerializerMethodField()
     answers = serializers.SerializerMethodField()
-    tags = serializers.SlugRelatedField(slug_field='slug', read_only=True, many=True)
+   
     
     class Meta:
         model = Question

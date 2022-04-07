@@ -11,8 +11,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 class CustomIsAdminUser(permissions.BasePermission):
     
     def has_permission(self, request, view):
-        METHOD = ['POST']
-        if request.method not in METHOD:
+        if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_staff
     

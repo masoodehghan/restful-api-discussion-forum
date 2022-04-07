@@ -5,7 +5,7 @@ from django.urls import reverse
 class Question(models.Model):
     title = models.CharField(max_length=50)
     body = models.TextField()
-    slug = models.SlugField(max_length=50, null=True, blank=True)
+    slug = models.SlugField(max_length=50, null=True, blank=True, unique=True)
     
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, 
                               on_delete=models.CASCADE, 
@@ -43,8 +43,7 @@ class Answer(models.Model):
     def __str__(self):
         return self.content[:40]
     
-    def get_absolute_url(self):
-        return reverse("answer-detail", kwargs={"pk": self.id})
+    
 
 
 class Tag(models.Model):

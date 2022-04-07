@@ -13,7 +13,7 @@ class QuestionListVIew(APIView):
     permission_classes = [permissions.AllowAny]
     
     
-    def get(self, request, **args):
+    def get(self, request, **kwargs):
         
         q = ''   # q is serach query
 
@@ -36,7 +36,7 @@ class QuestionListVIew(APIView):
 class QuestionCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
-    def post(self, request, **args):
+    def post(self, request, **kwargs):
         serializer = QuestionSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -59,7 +59,7 @@ class QuestionDetailView(APIView):
             return Response({'message':'object is not existed!'}, status=status.HTTP_404_NOT_FOUND)
         
     
-    def get(self, request, slug, **args):
+    def get(self, request, slug, **kwargs):
         qusetion = self.get_object(slug=slug)
         serializer = QuestionSerializer(qusetion, many=False)
         
@@ -67,19 +67,19 @@ class QuestionDetailView(APIView):
         'data': serializer.data,
     })
     
-    def put(self, request, slug, **args):
+    def put(self, request, slug, **kwargs):
         question = self.get_object(slug)
         self.check_object_permissions(request, question)
         
-        serializer = QuestionSerializer(question, data=request.data, many=False)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
+        serializer = QuestionSerializer(instance=question, data=request.data, many=False)
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
             return Response(serializer.data, status.HTTP_200_OK)
         
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, slug, **args):
+    def delete(self, request, slug, **kwargs):
         question = self.get_object(slug)
         self.check_object_permissions(request, question)
         question.delete()
@@ -92,7 +92,7 @@ class AnswerDetailView(APIView):
     
     
 
-    def post(self, request, slug, **args):
+    def post(self, request, slug, **kwargs):
         question = Question.objects.get(slug=slug)
         owner = request.user
         
@@ -119,7 +119,7 @@ class AnswerDetailView(APIView):
         return Response({'message':'answer deleted.'}, status.HTTP_204_NO_CONTENT)
     
     
-    def put(self, request, pk, **args):
+    def put(self, request, pk, **kwargs):
         answer = Answer.objects.get(id=pk)
         self.check_object_permissions(request, answer)
         serializer = AnswerSerializer(answer, request.data, many=False)
@@ -137,7 +137,7 @@ class TagView(APIView):
                            CustomIsAdminUser]
                           
     
-    def post(self, request, **args):
+    def post(self, request, **kwargs):
         
         self.check_permissions(request=request)
         serializer = TagSerializer(data=request.data, many=False)
@@ -148,7 +148,7 @@ class TagView(APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         
-    def get(self, request, slug, **args):
+    def get(self, request, slug, **kwargs):
         question = Question.objects.filter(tags__slug=slug)
         
         serializer = QuestionSerializer(question, many=True)
@@ -157,17 +157,16 @@ class TagView(APIView):
     
     
 class BestAnswerView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsOwnerOrReadOnly]
     
-    def put(self, request, slug, **args):
+    def put(self, request, slug, answer_pk, **kwargs):
         question = Question.objects.get(slug=slug)
         
-        if request.data.get('answer'):
-            
-            answer = Answer.objects.get(id=request.data['answer'])
-            question.best_answer_id = answer
-            question.save()
+        # self.check_object_permissions(request, question)        
+
+        answer = Answer.objects.get(id=answer_pk)
+        question.best_answer_id = answer
+        question.save()
         
-            return Response({'message':'best answer submited'}, status.HTTP_200_OK)
-        else:
-            return  Response({'message':'answer not specified!'}, status.HTTP_400_BAD_REQUEST)
+        return Response({'message':'best answer submited'}, status.HTTP_200_OK)
+        
