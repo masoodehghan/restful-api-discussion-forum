@@ -13,4 +13,6 @@ urlpatterns = [
     path('tag/<slug:slug>', views.TagView.as_view(), name='question-list-by-tag'),
     path('question/best-answer/<slug:slug>/<int:answer_pk>/', views.BestAnswerView.as_view(), name='best-answer'),
     
+    path('vote/<int:answer_pk>/', views.VoteView.as_view(), name='vote')
+    
 ]

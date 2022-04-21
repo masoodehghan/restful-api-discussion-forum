@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
+
 
 class Question(models.Model):
     title = models.CharField(max_length=50)
@@ -39,18 +39,32 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
     
+    @property
+    def voters(self):
+        query_set = self.vote.all().values('owner')
+        return query_set
     
     def __str__(self):
         return self.content[:40]
     
     
-
-
 class Tag(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True)
     
-    
     def __str__(self):
         return self.name
+    
+
+class Vote(models.Model):
+    class Values(models.IntegerChoices):
+        UP_VOTE = 1
+        
+        
+    value = models.IntegerField(choices=Values.choices)
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE, related_name='vote', blank=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, related_name='votes')
+    
+    def __str__(self):
+        return f"{str(self.value)}    {self.answer.content}"
     

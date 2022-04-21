@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from rest_framework.reverse import reverse
 from .managers import CustomUserManager
+from thread.models import Vote
+
 
 class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=300)
@@ -10,9 +11,17 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
     
     objects = CustomUserManager()
-    
+
     def __str__(self):
         return self.email
     
+    
+    @property
+    def point(self):
+        answer = self.answers.all()
+        votes = Vote.objects.filter(answer__in=answer).aggregate(models.Sum('value'))
+        return votes.get('value__sum')
+        
+        
     
     

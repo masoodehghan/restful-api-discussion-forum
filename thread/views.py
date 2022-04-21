@@ -1,6 +1,7 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import AnswerSerializer, QuestionSerializer, TagSerializer
+from .serializers import AnswerSerializer, QuestionSerializer, TagSerializer, VoteSerializer
 from .models import Answer, Question, Tag
 from rest_framework import permissions, status
 from django.utils.text import slugify
@@ -25,8 +26,7 @@ class QuestionListVIew(APIView):
                                             Q(title__icontains=q) | 
                                             Q(tags__name__icontains=q) | 
                                             Q(owner__first_name__icontains=q) | 
-                                            Q(owner__email__icontains=q)
-                                            )
+                                            Q(owner__email__icontains=q))
         
         
         serializer = QuestionSerializer(question, many=True)
@@ -95,8 +95,6 @@ class AnswerDetailView(APIView):
     def post(self, request, slug, **kwargs):
         question = Question.objects.get(slug=slug)
         owner = request.user
-        
-        
         serializer = AnswerSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -162,7 +160,7 @@ class BestAnswerView(APIView):
     def put(self, request, slug, answer_pk, **kwargs):
         question = Question.objects.get(slug=slug)
         
-        # self.check_object_permissions(request, question)        
+        self.check_object_permissions(request, question)        
 
         answer = Answer.objects.get(id=answer_pk)
         question.best_answer_id = answer
@@ -170,3 +168,34 @@ class BestAnswerView(APIView):
         
         return Response({'message':'best answer submited'}, status.HTTP_200_OK)
         
+
+class VoteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    
+    def post(self, request, answer_pk, *args, **kwargs):
+        
+        answer = get_object_or_404(Answer, id=answer_pk)
+        
+        data = {'value':int(request.data['value'])}
+        
+        serializer = VoteSerializer(data=data)
+        
+        
+        
+        if answer.voters.exists():
+            #check if user already vote or not
+            
+            if request.user.id in answer.voters[0].values():
+                return Response({'message':'you already voted!'}, status.HTTP_400_BAD_REQUEST)
+        
+        if answer.owner == request.user:
+            return Response({'message':'you cant vote your own answer'}, status.HTTP_400_BAD_REQUEST)
+        
+        
+        if serializer.is_valid():
+            serializer.save(owner=request.user, answer=answer)
+            
+            return Response({'message':'vote submited succsessfully.'}, status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
