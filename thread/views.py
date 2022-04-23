@@ -94,12 +94,11 @@ class AnswerDetailView(APIView):
 
     def post(self, request, slug, **kwargs):
         question = Question.objects.get(slug=slug)
-        owner = request.user
+        
         serializer = AnswerSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.save(question=question, owner=owner)
-            
+            serializer.save(question=question, owner=request.user)
             return Response({
                 'data':serializer.data,
                 'message':'answer created!'

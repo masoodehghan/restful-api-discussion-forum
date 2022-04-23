@@ -67,4 +67,3 @@ class Vote(models.Model):
     
     def __str__(self):
         return f"{str(self.value)}    {self.answer.content}"
-    

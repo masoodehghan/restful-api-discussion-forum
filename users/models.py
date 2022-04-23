@@ -7,6 +7,7 @@ from thread.models import Vote
 class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=300)
     username = None
+    point = models.IntegerField(default=0, blank=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     
@@ -16,11 +17,6 @@ class User(AbstractUser):
         return self.email
     
     
-    @property
-    def point(self):
-        answer = self.answers.all()
-        votes = Vote.objects.filter(answer__in=answer).aggregate(models.Sum('value'))
-        return votes.get('value__sum')
         
         
     

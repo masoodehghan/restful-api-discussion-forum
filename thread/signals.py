@@ -1,11 +1,14 @@
 from turtle import pos
-from .models import Question, Tag
+from .models import Question, Tag, Vote
 from django.utils.text import slugify
-from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.db.models.signals import pre_save, post_save
 
+@receiver(pre_save, sender=Question)
 def slugify_title(sender, instance, *args, **kwargs):
     instance.slug = create_unique_slug('Question', instance)
 
+@receiver(pre_save, sender=Tag)
 def slugify_name_tag(sender, instance, *args, **kwargs):
     instance.slug = create_unique_slug('Tag', instance)  
     
@@ -28,6 +31,10 @@ def create_unique_slug(obj, instance, new_slug=None):
     
     return slug
 
-
-pre_save.connect(slugify_title, sender=Question)
-pre_save.connect(slugify_name_tag, sender=Tag)
+@receiver(post_save, sender=Vote)
+def point_to_user(sender, instance, *args, **kwargs):
+    answer_owner = instance.answer.owner
+    answer_owner.point += 1
+    answer_owner.save()
+    
+    
