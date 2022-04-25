@@ -2,18 +2,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import AnswerSerializer, QuestionSerializer, TagSerializer, VoteSerializer
-from .models import Answer, Question, Tag
+from .models import Answer, Question
 from rest_framework import permissions, status
-from django.utils.text import slugify
 from .permissions import IsOwnerOrReadOnly, CustomIsAdminUser
 from django.db.models import Q
 
    
-
 class QuestionListVIew(APIView):
     permission_classes = [permissions.AllowAny]
-    
-    
     def get(self, request, **kwargs):
         
         q = ''   # q is serach query
@@ -45,7 +41,6 @@ class QuestionCreateView(APIView):
                              'data':serializer.data}, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-
 
         
 class QuestionDetailView(APIView):
@@ -93,12 +88,16 @@ class AnswerDetailView(APIView):
     
 
     def post(self, request, slug, **kwargs):
-        question = Question.objects.get(slug=slug)
+        question = get_object_or_404(Question, slug=slug)
         
         serializer = AnswerSerializer(data=request.data)
         
         if serializer.is_valid():
             serializer.save(question=question, owner=request.user)
+            request.user.point += 2
+            
+            request.user.save()
+            
             return Response({
                 'data':serializer.data,
                 'message':'answer created!'
@@ -109,7 +108,7 @@ class AnswerDetailView(APIView):
         
         
     def delete(self, request, pk, **kwargs):
-        answer = Answer.objects.get(id=pk)
+        answer = get_object_or_404(Answer, id=pk)
         self.check_object_permissions(request, answer)
         answer.delete()
         
@@ -117,8 +116,8 @@ class AnswerDetailView(APIView):
     
     
     def put(self, request, pk, **kwargs):
-        answer = Answer.objects.get(id=pk)
-        self.check_object_permissions(request, answer)
+        answer = get_object_or_404(Answer, id=pk)
+        self.check_object_permissions(request, answer) # check if owner is updating answer or not
         serializer = AnswerSerializer(answer, request.data, many=False)
         
         if serializer.is_valid():
@@ -136,16 +135,23 @@ class TagView(APIView):
     
     def post(self, request, **kwargs):
         
+        """
+        only admins can add tag
+        """
         self.check_permissions(request=request)
         serializer = TagSerializer(data=request.data, many=False)
         
         if serializer.is_valid():
-            serializer.save(slug=slugify(serializer.validated_data['name']))
+            serializer.save()
             return Response({'message':'Tag created.'}, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         
     def get(self, request, slug, **kwargs):
+        """
+        diplay a list of question by thier tags       
+        """
+        
         question = Question.objects.filter(tags__slug=slug)
         
         serializer = QuestionSerializer(question, many=True)
@@ -157,13 +163,22 @@ class BestAnswerView(APIView):
     permission_classes = [IsOwnerOrReadOnly]
     
     def put(self, request, slug, answer_pk, **kwargs):
-        question = Question.objects.get(slug=slug)
+        question = get_object_or_404(Question, slug=slug)
         
         self.check_object_permissions(request, question)        
 
-        answer = Answer.objects.get(id=answer_pk)
+        answer = get_object_or_404(Answer, id=answer_pk)
+        if question.owner == answer.owner:
+            return Response({'message':'your answer cant be best answer '}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        
         question.best_answer_id = answer
+        answer.owner.point += 10
+        question.owner.point += 2
+        print('DU', answer.owner.point)
+        
+        answer.owner.save()
         question.save()
+        question.owner.save()
         
         return Response({'message':'best answer submited'}, status.HTTP_200_OK)
         
@@ -175,12 +190,8 @@ class VoteView(APIView):
     def post(self, request, answer_pk, *args, **kwargs):
         
         answer = get_object_or_404(Answer, id=answer_pk)
-        
         data = {'value':int(request.data['value'])}
-        
         serializer = VoteSerializer(data=data)
-        
-        
         
         if answer.voters.exists():
             #check if user already vote or not

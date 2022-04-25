@@ -1,4 +1,4 @@
-from turtle import pos
+import random
 from .models import Question, Tag, Vote
 from django.utils.text import slugify
 from django.dispatch import receiver
@@ -26,7 +26,10 @@ def create_unique_slug(obj, instance, new_slug=None):
     query_set = instanceClass.objects.filter(slug=slug)
     
     if query_set.exists():
-        new_slug = f"{slug}-{query_set.first().id}"
+        random_list = random.sample(range(97, 123), 7)
+        random_str = ''.join(map(chr, random_list))
+        
+        new_slug = f"{slug}-{random_str}"
         return create_unique_slug(obj, instance, new_slug)
     
     return slug
@@ -34,7 +37,7 @@ def create_unique_slug(obj, instance, new_slug=None):
 @receiver(post_save, sender=Vote)
 def point_to_user(sender, instance, *args, **kwargs):
     answer_owner = instance.answer.owner
-    answer_owner.point += 1
+    answer_owner.point += 5
     answer_owner.save()
     
     
