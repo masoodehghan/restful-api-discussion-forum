@@ -4,7 +4,6 @@ from . import views
 from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView)
 
 
-
 urlpatterns = [
     path('userlist', views.UserListView.as_view(), name='user_list'),
     path('user/<int:pk>', views.api_root, name='user-detail'),
