@@ -56,7 +56,7 @@ class UserProfile(generics.RetrieveAPIView, generics.UpdateAPIView):
 
     def get_object(self):
         queryset = self.queryset
-        obj = get_object_or_404(queryset, id=self.request.user.id)
+        obj = get_object_or_404(queryset, pk=self.request.user.pk)
         self.check_object_permissions(self.request, obj)
         return obj
 

@@ -1,5 +1,14 @@
 version: "3.8"
 services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=forum
+      - POSTGRES_USER=forum_admin
+      - POSTGRES_PASSWORD=forumadmin
+
   app:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
@@ -7,3 +16,12 @@ services:
       - .:/django-forum
     ports:
       - "8000:8000"
+    container_name: forum_app
+
+    environment:
+      - POSTGRES_DB=forum
+      - POSTGRES_USER=forum_admin
+      - POSTGRES_PASSWORD=forumadmin
+
+    depends_on:
+      - db

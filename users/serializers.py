@@ -10,7 +10,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'password2', 'first_name', 'last_name']
+        fields = ['username', 'email', 'password', 'password2', 'first_name', 'last_name', 'uuid']
 
     def validate(self, data):
         if data['password'] != data['password2']:
@@ -31,6 +31,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return super(RegisterSerializer, self).validate(data)
 
     def create(self, validated_data):
+        print(validated_data)
         return User.objects.create_user(**validated_data)
 
 
@@ -41,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'question', 'answers', 'point', 'url']
+        fields = ['email', 'get_full_name', 'question', 'answers', 'point', 'url']
         
 
 class PasswordSerializer(serializers.Serializer):
