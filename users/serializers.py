@@ -42,8 +42,9 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['email', 'get_full_name', 'question', 'answers', 'point', 'url']
-        
+        fields = ['username', 'email', 'first_name', 'last_name', 'question', 'answers', 'point', 'url']
+        read_only_fields = ['point']
+
 
 class PasswordSerializer(serializers.Serializer):
     

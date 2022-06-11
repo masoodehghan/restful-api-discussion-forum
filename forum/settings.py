@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     
     'rest_framework',
     'users.apps.UsersConfig',
-    'thread.apps.ThreadConfig'
+    'thread.apps.ThreadConfig',
+    'django_filters'
 ]
 
 REST_FRAMEWORK = {
@@ -55,8 +56,7 @@ REST_FRAMEWORK = {
         
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    
-    
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 SIMPLE_JWT = {
@@ -146,6 +146,8 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
+AUTHENTICATION_BACKENDS = ['users.managers.UsernameOrEmailModelBackend']
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -161,7 +163,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['users.managers.UsernameOrEmailModelBackend']
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 

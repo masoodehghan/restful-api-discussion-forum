@@ -105,6 +105,6 @@ class QuestionTest(test.APITestCase):
         response = self.api_client.put(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], 'best answer submited')
+        self.assertEqual(response.data['message'], 'best answer submitted')
         
         

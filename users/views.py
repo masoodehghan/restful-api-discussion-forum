@@ -29,24 +29,7 @@ class UserDetail(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = User.objects.all()
 
-    # def get(self, request, pk, **args):
-    #     user = User.objects.get(id=pk)
-    #
-    #     serializer = UserSerializer(user, many=False)
-    #
-    #     return Response(serializer.data, status.HTTP_200_OK)
-    #
-    # def put(self, request, **args):
-    #     user = request.user
-    #
-    #     serializer = UserSerializer(instance=user, data=request.data, many=False)
-    #
-    #     if serializer.is_valid():
-    #         serializer.save(email=user.email)
-    #
-    #         return Response({'message': 'user updated.', 'data': serializer.data}, status.HTTP_200_OK)
-    #     else:
-    #         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    lookup_field = 'uuid'
 
 
 class UserProfile(generics.RetrieveAPIView, generics.UpdateAPIView):

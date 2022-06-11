@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.urls import reverse
 
 
 class Question(models.Model):
@@ -15,24 +16,25 @@ class Question(models.Model):
     create_time = models.DateTimeField(auto_now_add=True)
     
     tags = models.ManyToManyField('Tag', blank=True, related_name='questions')
-    best_answer_id = models.OneToOneField('Answer', 
-                                          on_delete=models.CASCADE, 
-                                          null=True, 
-                                          blank=True, 
-                                          related_name='best_answer')
-    
+    best_answer_id = models.OneToOneField(
+        'Answer', on_delete=models.CASCADE, null=True, blank=True, related_name='best_answer'
+    )
+
     class Meta:
         ordering = ['-best_answer_id']
-    
-    
+
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('question-detail', kwargs={'slug': self.slug})
     
 
 class Answer(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                                null=True, blank=True, related_name='answers')
-    
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='answers'
+    )
+
     id = models.BigAutoField(primary_key=True, editable=False, unique=True)
     
     content = models.TextField()
@@ -54,13 +56,15 @@ class Tag(models.Model):
     
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('question-list-by-tag', kwargs={'slug': self.slug})
     
 
 class Vote(models.Model):
     class Values(models.IntegerChoices):
         UP_VOTE = 1
-        
-        
+
     value = models.IntegerField(choices=Values.choices)
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE, related_name='vote', blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, related_name='votes')

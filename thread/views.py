@@ -2,31 +2,36 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import AnswerSerializer, QuestionSerializer, TagSerializer, VoteSerializer
-from .models import Answer, Question
+from .models import Answer, Question, Tag
 from rest_framework import permissions, status, generics
 from .permissions import IsOwner, CustomIsAdminUser
-from django.db.models import Q
+from rest_framework.filters import SearchFilter
 
    
-class QuestionListVIew(APIView):
+class QuestionListVIew(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
+    serializer_class = QuestionSerializer
 
-    def get(self, request, **kwargs):
-        
-        q = ''   # q is search query
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'tags__name', 'owner__username']
 
-        if request.GET.get('q'):
-            q = request.GET.get('q')
+    queryset = Question.objects.all()
 
-        question = Question.objects.distinct().filter(
-                                            Q(title__icontains=q) | 
-                                            Q(tags__name__icontains=q) | 
-                                            Q(owner__first_name__icontains=q) | 
-                                            Q(owner__email__icontains=q))
-
-        serializer = QuestionSerializer(question, many=True)
-        
-        return Response(serializer.data)
+    # def get(self, request, **kwargs):
+    #
+    #     q = ''   # q is search query
+    #
+    #     if request.GET.get('q'):
+    #         q = request.GET.get('q')
+    #
+    #     question = Question.objects.distinct().filter(
+    #                                         Q(title__icontains=q) |
+    #                                         Q(tags__name__icontains=q) |
+    #                                         Q(owner__username__icontains=q))
+    #
+    #     serializer = QuestionSerializer(question, many=True)
+    #
+    #     return Response(serializer.data)
 
 
 class QuestionCreateView(generics.CreateAPIView):
@@ -74,6 +79,15 @@ class TagView(generics.CreateAPIView):
     permission_classes = [CustomIsAdminUser]
 
 
+class QuestionListByTagView(generics.ListAPIView):
+    serializer_class = QuestionSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        tag = get_object_or_404(Tag, slug=self.kwargs.get('slug'))
+        return Question.objects.filter(tags=tag)
+
+
 class BestAnswerView(APIView):
     permission_classes = [IsOwner]
     
@@ -94,7 +108,7 @@ class BestAnswerView(APIView):
         question.save()
         question.owner.save()
         
-        return Response({'message': 'best answer submited'}, status.HTTP_200_OK)
+        return Response({'message': 'best answer submitted'}, status.HTTP_200_OK)
         
 
 class VoteView(APIView):
@@ -119,6 +133,6 @@ class VoteView(APIView):
         if serializer.is_valid():
             serializer.save(owner=request.user, answer=answer)
             
-            return Response({'message': 'vote submited succsessfully.'}, status.HTTP_201_CREATED)
+            return Response({'message': 'vote submitted successfully.'}, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
