@@ -4,7 +4,6 @@ from users.serializers import UserSerializer
 
 
 class AnswerSerializer(serializers.ModelSerializer):
-    owner = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:
         model = Answer

@@ -57,16 +57,21 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
         return [permission() for permission in permission_classes]
 
 
-class AnswerDetailView(generics.CreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
+class AnswerCreateView(generics.CreateAPIView):
+    serializer_class = AnswerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        question = get_object_or_404(Question, slug=self.kwargs['slug'])
+        serializer.save(question=question, owner=self.request.user)
+
+
+class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
     serializer_class = AnswerSerializer
     permission_classes = [IsOwner]
 
     def get_queryset(self):
         return Answer.objects.filter(owner=self.request.user)
-
-    def perform_create(self, serializer):
-        question = get_object_or_404(Question, slug=self.kwargs['slug'])
-        serializer.save(question=question)
 
 
 class TagView(generics.CreateAPIView):
@@ -99,7 +104,7 @@ class BestAnswerView(APIView):
         answer = get_object_or_404(Answer, id=answer_pk)
         if question.owner == answer.owner:
             return Response({'message': 'your answer cant be best answer '}, status=status.HTTP_406_NOT_ACCEPTABLE)
-        
+        print(answer.owner)
         question.best_answer_id = answer
         answer.owner.point += 10
         question.owner.point += 2

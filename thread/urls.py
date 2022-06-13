@@ -6,7 +6,7 @@ urlpatterns = [
     path('question/create', views.QuestionCreateView.as_view(), name='question-create'),
     path('question/<slug:slug>', views.QuestionDetailView.as_view(), name='question-detail'),
     
-    path('answer/<slug:slug>', views.AnswerDetailView.as_view(), name='answer-create'),
+    path('answer/<slug:slug>', views.AnswerCreateView.as_view(), name='answer-create'),
     path('answer/<int:pk>/', views.AnswerDetailView.as_view(), name='answer-detail'),
     
     path('tag/create', views.TagView.as_view(), name='tag-create'),
