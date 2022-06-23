@@ -20,9 +20,6 @@ class Question(models.Model):
         'Answer', on_delete=models.CASCADE, null=True, blank=True, related_name='best_answer'
     )
 
-    class Meta:
-        ordering = ['-best_answer_id']
-
     def __str__(self):
         return self.title
 
@@ -42,7 +39,7 @@ class Answer(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True)
     
     @property
-    def voters(self):
+    def get_voters(self):
         query_set = self.vote.all().values('owner')
         return query_set
     
@@ -68,6 +65,6 @@ class Vote(models.Model):
     value = models.IntegerField(choices=Values.choices)
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE, related_name='vote', blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, related_name='votes')
-    
+
     def __str__(self):
         return f"{str(self.value)}    {self.answer.content}"

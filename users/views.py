@@ -2,21 +2,10 @@ from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import User
 from .serializers import UserSerializer, PasswordSerializer, RegisterSerializer
 from .permissions import IsOwner
-from django.shortcuts import get_object_or_404
+from .models import User
 
-
-class UserListView(APIView):
-    permission_classes = [permissions.IsAdminUser]
-    
-    def get(self, request):
-        user = User.objects.all()
-        
-        serializer = UserSerializer(user, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
 
 class RegisterView(generics.CreateAPIView):
 
@@ -26,8 +15,8 @@ class RegisterView(generics.CreateAPIView):
 
 class UserDetail(generics.RetrieveAPIView):
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]
+    queryset = User.objects.defer('password', 'is_active', 'is_staff', 'date_joined')
 
     lookup_field = 'uuid'
 
@@ -35,13 +24,11 @@ class UserDetail(generics.RetrieveAPIView):
 class UserProfile(generics.RetrieveAPIView, generics.UpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsOwner]
-    queryset = User.objects.all()
+
+    queryset = User.objects.defer('password', 'is_active', 'is_staff', 'date_joined')
 
     def get_object(self):
-        queryset = self.queryset
-        obj = get_object_or_404(queryset, pk=self.request.user.pk)
-        self.check_object_permissions(self.request, obj)
-        return obj
+        return self.request.user
 
 
 class ChangePasswordView(APIView):

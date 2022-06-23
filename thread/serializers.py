@@ -17,20 +17,26 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    owner = serializers.CharField(source='owner.username', read_only=True)
     answers = AnswerSerializer(source='answer_set', many=True, read_only=True)
-    url = serializers.URLField(source='get_absolute_url', read_only=True)
+    owner = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:
         model = Question
         fields = '__all__'
-        read_only_fields = ['id', 'owner', 'answers', 'url']
-        
+        read_only_fields = ['id', 'owner', 'answers']
+
+
+class QuestionMiniSerializer(serializers.ModelSerializer):
+    url = serializers.URLField(source='get_absolute_url', read_only=True)
+    owner = serializers.CharField(source='owner.username', read_only=True)
+
+    class Meta:
+        model = Question
+        exclude = ['best_answer_id']
+        read_only_fields = ['url', 'owner']
+
 
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
-        fields = '__all__'            
-    
-        
-        
+        fields = '__all__'

@@ -1,8 +1,8 @@
 from random import choice
-from .models import Question, Tag, Vote
+from .models import Question, Tag
 from django.utils.text import slugify
 from django.dispatch import receiver
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save
 from string import ascii_lowercase
 
 
@@ -41,12 +41,3 @@ def create_unique_slug(obj, instance, new_slug=None):
         return create_unique_slug(obj, instance, new_slug)
     
     return slug
-
-
-@receiver(post_save, sender=Vote)
-def point_to_user(sender, instance, *args, **kwargs):
-    answer_owner = instance.answer.owner
-    answer_owner.point += 5
-    answer_owner.save()
-    
-    
