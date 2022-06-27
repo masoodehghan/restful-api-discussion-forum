@@ -3,15 +3,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import (AnswerSerializer, QuestionSerializer,
                           TagSerializer, VoteSerializer, QuestionMiniSerializer)
-from .models import Answer, Question, Tag
+from .models import Answer, Question
 from rest_framework import permissions, status, generics
-from .permissions import IsOwner, CustomIsAdminUser
+from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
-from django.db.models import F
+from django.db.models import Prefetch, F
 
 
-class QuestionListVIew(generics.ListAPIView):
-    permission_classes = [permissions.AllowAny]
+class QuestionListVIew(generics.ListCreateAPIView):
+
     serializer_class = QuestionMiniSerializer
 
     filter_backends = [SearchFilter]
@@ -21,9 +21,12 @@ class QuestionListVIew(generics.ListAPIView):
         fields = [
             'slug', 'body', 'tags', 'create_time', 'title', 'owner__username', 'tags__id'
         ]
-        queryset = Question.objects.select_related('owner').prefetch_related('tags')
+        queryset = Question.objects.select_related('owner').prefetch_related('tags').order_by('-create_time')
 
-        return queryset.all().only(*fields)
+        return queryset.only(*fields)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
     # def get(self, request, **kwargs):
     #
@@ -42,44 +45,29 @@ class QuestionListVIew(generics.ListAPIView):
     #     return Response(serializer.data)
 
 
-class QuestionCreateView(generics.CreateAPIView):
-    serializer_class = QuestionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
-
-
 class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = QuestionSerializer
+    permission_classes = [IsOwner]
 
     lookup_field = 'slug'
 
     def get_queryset(self):
-        fields = ['tags__name', 'owner__username', 'title', 'body', 'slug', 'create_time', 'best_answer_id']
-        queryset = Question.objects.only(*fields)
-        return queryset
 
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            permission_classes = [permissions.AllowAny]
+        answers = Answer.objects.select_related('owner').only('content', 'owner__username', 'created', 'question')
 
-        else:
-            permission_classes = [IsOwner]
-        return [permission() for permission in permission_classes]
+        fields = ['tags__name', 'owner__username', 'title',
+                  'body', 'slug', 'create_time', 'best_answer_id']
+        queryset = Question.objects.prefetch_related(Prefetch('answer_set', answers))
+
+        return queryset.only(*fields)
 
 
 class AnswerCreateView(generics.CreateAPIView):
     serializer_class = AnswerSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        try:
-            question = Question.objects.only('slug', 'title').get(slug=self.kwargs['slug'])
-        except Question.DoesNotExist as e:
-            raise e
 
-        serializer.save(question=question, owner=self.request.user)
+        serializer.save(owner=self.request.user)
 
 
 class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
@@ -97,7 +85,7 @@ class TagView(generics.CreateAPIView):
     """
 
     serializer_class = TagSerializer
-    permission_classes = [CustomIsAdminUser]
+    permission_classes = [permissions.IsAdminUser]
 
 
 class QuestionListByTagView(generics.ListAPIView):
@@ -105,47 +93,19 @@ class QuestionListByTagView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        tag = get_object_or_404(Tag, slug=self.kwargs.get('slug'))
-
         fields = [
             'slug', 'body', 'tags', 'create_time', 'title', 'owner__username', 'tags__id'
         ]
 
         queryset = Question.objects.select_related('owner').prefetch_related('tags')
-        return queryset.filter(tags=tag).only(*fields)
+        return queryset.filter(tags__slug=self.kwargs['slug']).only(*fields)
 
-
-class BestAnswerView(APIView):
-    permission_classes = [IsOwner]
-    
-    def put(self, request, slug, answer_pk, **kwargs):
-        question = get_object_or_404(Question, slug=slug)
-        
-        self.check_object_permissions(request, question)
-
-        answer = get_object_or_404(Answer, id=answer_pk)
-        answer_owner = answer.owner
-        question_owner = question.owner
-
-        if question_owner == answer_owner:
-            return Response({'message': 'your answer cant be best answer '}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        question.best_answer_id = answer
-        answer_owner.point = F('point') + 10
-        question_owner.point = F('point') + 10
-
-        answer_owner.save()
-        question.save()
-        question_owner.save()
-
-        return Response({'message': 'best answer submitted'}, status.HTTP_200_OK)
-        
 
 class VoteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, answer_pk, *args, **kwargs):
-        
+
         answer = get_object_or_404(Answer, id=answer_pk)
         data = {'value': int(request.data['value'])}
         serializer = VoteSerializer(data=data)

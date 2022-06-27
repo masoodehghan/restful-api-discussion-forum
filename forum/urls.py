@@ -8,5 +8,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('users.urls')),
     path('api/discuss/', include('thread.urls')),
-    path('__debug__/', include(debug_toolbar.urls)),
+    path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/register/', include('dj_rest_auth.registration.urls')),
+
 ]
+
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [path('__debug__/', include(debug_toolbar.urls)),] + urlpatterns

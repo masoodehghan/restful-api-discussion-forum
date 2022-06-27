@@ -23,6 +23,7 @@ def slugify_name_tag(sender, instance, *args, **kwargs):
     
 
 def create_unique_slug(obj, instance, new_slug=None):
+    slug = None
     if new_slug is not None:
         slug = new_slug
     else:
