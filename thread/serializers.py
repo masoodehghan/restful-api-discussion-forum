@@ -38,15 +38,15 @@ class QuestionSerializer(serializers.ModelSerializer):
         if validated_data.get('best_answer_id'):
             answer = validated_data['best_answer_id']
 
-            user_objs = [answer.owner, instance.owner]
+            if answer in instance.answer_set.all():
 
-            if user_objs[0] == user_objs[1]:
-                raise serializers.ValidationError('Your own answer cant be the best answer')
+                if answer.owner_id == instance.owner_id:
+                    raise serializers.ValidationError('Your own answer cant be the best answer.')
 
-            user_objs[0].point = F('point') + 10
-            user_objs[1].point = F('point') + 2
-
-            get_user_model().objects.bulk_update(user_objs, ['point'])
+                answer.owner.point = F('point') + 10
+                answer.owner.save()
+            else:
+                raise serializers.ValidationError('answer is not in your question.')
 
         return super(QuestionSerializer, self).update(instance, validated_data)
 

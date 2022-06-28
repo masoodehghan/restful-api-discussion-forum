@@ -72,10 +72,10 @@ class AnswerCreateView(generics.CreateAPIView):
 
 class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
     serializer_class = AnswerSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsOwner]
 
     def get_queryset(self):
-        return Answer.objects.filter(owner_id=self.request.user.id)
+        return Answer.objects.all()
 
 
 class TagView(generics.CreateAPIView):

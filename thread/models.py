@@ -45,6 +45,9 @@ class Answer(models.Model):
     
     def __str__(self):
         return self.content[:40]
+
+    def get_absolute_url(self):
+        return reverse('answer-detail', kwargs={'pk': self.id})
     
     
 class Tag(models.Model):
