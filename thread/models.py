@@ -16,6 +16,9 @@ class Question(models.Model):
     create_time = models.DateTimeField(auto_now_add=True)
     
     tags = models.ManyToManyField('Tag', blank=True, related_name='questions')
+    best_answer_id = models.OneToOneField(
+        'Answer', on_delete=models.CASCADE, null=True, blank=True, related_name='best_answer'
+    )
 
     def __str__(self):
         return self.title
@@ -34,7 +37,6 @@ class Answer(models.Model):
     content = models.TextField()
     question = models.ForeignKey(Question, on_delete=models.CASCADE, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
-    is_best = models.BooleanField(default=False)
     
     @property
     def get_voters(self):

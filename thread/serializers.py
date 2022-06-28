@@ -29,25 +29,24 @@ class QuestionSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(source='answer_set', many=True, read_only=True)
     owner = serializers.CharField(source='owner.username', read_only=True)
 
-
     class Meta:
         model = Question
         fields = '__all__'
         read_only_fields = ['id', 'owner', 'answers', 'slug']
 
     def update(self, instance, validated_data):
-        # if validated_data.get('best_answer_id'):
-        #     answer = validated_data['best_answer_id']
-        #
-        #     if answer in instance.answer_set.all():
-        #
-        #         if answer.owner_id == instance.owner_id:
-        #             raise serializers.ValidationError('Your own answer cant be the best answer.')
-        #
-        #         answer.owner.point = F('point') + 10
-        #         answer.owner.save()
-        #     else:
-        #         raise serializers.ValidationError('answer is not in your question.')
+        if validated_data.get('best_answer_id'):
+            answer = validated_data['best_answer_id']
+
+            if answer in instance.answer_set.all():
+
+                if answer.owner_id == instance.owner_id:
+                    raise serializers.ValidationError('Your own answer cant be the best answer.')
+
+                answer.owner.point = F('point') + 10
+                answer.owner.save()
+            else:
+                raise serializers.ValidationError('answer is not in your question.')
 
         return super(QuestionSerializer, self).update(instance, validated_data)
 
