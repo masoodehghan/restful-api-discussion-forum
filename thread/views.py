@@ -53,10 +53,12 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
 
-        answers = Answer.objects.select_related('owner').only('content', 'owner__username', 'created', 'question')
+        answers = Answer.objects.select_related('owner').only('content', 'owner__username',
+                                                              'created', 'question', 'is_best')
 
         fields = ['tags__name', 'owner__username', 'title',
                   'body', 'slug', 'create_time', 'best_answer_id']
+
         queryset = Question.objects.prefetch_related(Prefetch('answer_set', answers))
 
         return queryset.only(*fields)
