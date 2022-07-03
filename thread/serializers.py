@@ -26,7 +26,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
 
-    answers = AnswerSerializer(source='answers', many=True, read_only=True)
+    answers = AnswerSerializer(many=True, read_only=True)
     owner = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:

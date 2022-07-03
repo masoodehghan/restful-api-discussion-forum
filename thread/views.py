@@ -8,6 +8,9 @@ from rest_framework import permissions, status, generics
 from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
 from django.db.models import Prefetch, F
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
+from django.utils.decorators import method_decorator
 
 
 class QuestionListVIew(generics.ListCreateAPIView):
@@ -62,6 +65,11 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
         queryset = Question.objects.prefetch_related(Prefetch('answers', answers))
 
         return queryset.only(*fields)
+
+    @method_decorator(cache_page(60*5))  # cache page for 5 minutes
+    @method_decorator(vary_on_cookie)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
 
 class AnswerCreateView(generics.CreateAPIView):
