@@ -37,16 +37,9 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     question = serializers.SlugRelatedField(slug_field='slug', many=True, read_only=True)
-    answers = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     url = serializers.URLField(source='get_absolute_url', read_only=True)
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'question', 'answers', 'point', 'url']
-        read_only_fields = ['point']
-
-
-class PasswordSerializer(serializers.Serializer):
-    
-    old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True)
+        fields = ['username', 'email', 'first_name', 'last_name', 'question', 'point', 'url']
+        read_only_fields = ['point', 'email']

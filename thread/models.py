@@ -11,13 +11,13 @@ class Question(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, 
                               on_delete=models.CASCADE, 
                               null=True, blank=True, related_name='question')
-    
-    id = models.BigAutoField(primary_key=True, unique=True, editable=False)
+
     create_time = models.DateTimeField(auto_now_add=True)
     
     tags = models.ManyToManyField('Tag', blank=True, related_name='questions')
-    best_answer_id = models.OneToOneField(
-        'Answer', on_delete=models.CASCADE, null=True, blank=True, related_name='best_answer'
+
+    best_answer = models.OneToOneField(
+        'Answer', on_delete=models.CASCADE, null=True, blank=True, related_name='best_answer_id'
     )
 
     def __str__(self):
@@ -29,18 +29,16 @@ class Question(models.Model):
 
 class Answer(models.Model):
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='answers'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, related_name='answers_owner'
     )
 
-    id = models.BigAutoField(primary_key=True, editable=False, unique=True)
-    
     content = models.TextField()
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, blank=True)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, blank=True, related_name='answers')
     created = models.DateTimeField(auto_now_add=True, null=True)
-    
+
     @property
     def get_voters(self):
-        query_set = self.vote.all().values('owner')
+        query_set = self.vote.all().values_list('owner__id', flat=True)
         return query_set
     
     def __str__(self):

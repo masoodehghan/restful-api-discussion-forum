@@ -53,11 +53,13 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
 
-        answers = Answer.objects.select_related('owner').only('content', 'owner__username', 'created', 'question')
+        answers = Answer.objects.select_related('owner').only('content', 'owner__username'
+                                                              , 'created', 'question')
 
         fields = ['tags__name', 'owner__username', 'title',
-                  'body', 'slug', 'create_time', 'best_answer_id']
-        queryset = Question.objects.prefetch_related(Prefetch('answer_set', answers))
+                  'body', 'slug', 'create_time', 'best_answer']
+
+        queryset = Question.objects.prefetch_related(Prefetch('answers', answers))
 
         return queryset.only(*fields)
 
@@ -113,8 +115,7 @@ class VoteView(APIView):
         if answer.get_voters.exists():
 
             # check if user already vote or not
-
-            if user.id in answer.get_voters[0].values():
+            if user.id in answer.get_voters:
                 return Response({'message': 'you already voted!'}, status.HTTP_400_BAD_REQUEST)
         
         if answer.owner == user:
