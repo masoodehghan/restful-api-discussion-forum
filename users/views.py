@@ -2,7 +2,6 @@ from rest_framework import permissions, generics
 
 
 from .serializers import UserSerializer
-from .permissions import IsOwner
 from .models import User
 
 
@@ -20,9 +19,9 @@ class UserDetail(generics.RetrieveAPIView):
     lookup_field = 'uuid'
 
 
-class UserProfile(generics.RetrieveAPIView, generics.UpdateAPIView):
+class UserProfile(generics.RetrieveAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsOwner]
+    permission_classes = [permissions.IsAuthenticated]
 
     queryset = User.objects.defer('password', 'is_active', 'is_staff', 'date_joined')
 

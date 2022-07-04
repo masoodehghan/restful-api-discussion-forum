@@ -1,11 +1,15 @@
 
 from pathlib import Path
+from environs import Env
 from datetime import timedelta
 import os
 
+env = Env()
+env.read_env()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-6l7%rqae=s3s&f4h_48=h6bq-frj!lsv0q%t90e^j*tjy9m6l%'
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -60,6 +64,8 @@ REST_FRAMEWORK = {
 
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20
 }
 
 SIMPLE_JWT = {
@@ -134,7 +140,7 @@ WSGI_APPLICATION = 'forum.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_NAME'),
+        'NAME': os.environ.get('POSTGRES_DB'),
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': 'db',

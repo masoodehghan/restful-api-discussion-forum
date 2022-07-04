@@ -7,10 +7,12 @@ from .models import Answer, Question
 from rest_framework import permissions, status, generics
 from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
-from django.db.models import Prefetch, F
+from django.db.models import Prefetch, F, Count
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie
 from django.utils.decorators import method_decorator
+from users.serializers import LeaderboardSerializer
+from django.contrib.auth import get_user_model
 
 
 class QuestionListVIew(generics.ListCreateAPIView):
@@ -66,7 +68,7 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         return queryset.only(*fields)
 
-    @method_decorator(cache_page(60*5))  # cache page for 5 minutes
+    @method_decorator(cache_page(60*2))  # cache page for 2 minutes
     @method_decorator(vary_on_cookie)
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -138,3 +140,19 @@ class VoteView(APIView):
             return Response({'message': 'vote submitted successfully.'}, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class LeaderboardView(generics.ListAPIView):
+    serializer_class = LeaderboardSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        user_queryset = get_user_model().objects.only('username', 'point')
+        queryset = user_queryset.annotate(best_answer_count=Count('answers_owner__best_answer_id'))
+
+        return queryset.order_by('-point')
+
+    @method_decorator(vary_on_cookie)
+    @method_decorator(cache_page(60*10))
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)

@@ -43,3 +43,18 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'question', 'point', 'url']
         read_only_fields = ['point', 'email']
+
+
+class LeaderboardSerializer(serializers.Serializer):
+
+    point = serializers.IntegerField(min_value=0, read_only=True)
+    best_answer_count = serializers.IntegerField(min_value=0, read_only=True)
+    username = serializers.CharField(max_length=150, read_only=True)
+
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+

@@ -8,6 +8,7 @@ services:
       - POSTGRES_DB=forum
       - POSTGRES_USER=forum_admin
       - POSTGRES_PASSWORD=forumadmin
+      
 
   app:
     build: .
@@ -22,6 +23,8 @@ services:
       - POSTGRES_DB=forum
       - POSTGRES_USER=forum_admin
       - POSTGRES_PASSWORD=forumadmin
+      - "SECRET_KEY=django-insecure-6l7%rqae=s3s&f4h_48=h6bq-frj!lsv0q%t90e^j*tjy9m6l%"
+      - DEBUG=False
 
     depends_on:
       - db
