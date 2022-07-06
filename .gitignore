@@ -1,0 +1,6 @@
+.idea*
+forum/test_settings.py
+data
+db.sqlite3
+.env
+**__pycache__*

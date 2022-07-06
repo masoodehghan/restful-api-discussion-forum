@@ -2,9 +2,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import (AnswerSerializer, QuestionSerializer,
-                          TagSerializer, VoteSerializer, QuestionMiniSerializer)
+                          TagSerializer, VoteSerializer, QuestionRetrieveSerializer)
 from .models import Answer, Question
-from rest_framework import permissions, status, generics
+from rest_framework import permissions, status, generics, versioning
 from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
 from django.db.models import Prefetch, F, Count
@@ -17,7 +17,7 @@ from django.contrib.auth import get_user_model
 
 class QuestionListVIew(generics.ListCreateAPIView):
 
-    serializer_class = QuestionMiniSerializer
+    serializer_class = QuestionSerializer
 
     filter_backends = [SearchFilter]
     search_fields = ['title', 'tags__name', 'owner__username']
@@ -51,15 +51,24 @@ class QuestionListVIew(generics.ListCreateAPIView):
 
 
 class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = QuestionSerializer
     permission_classes = [IsOwner]
 
     lookup_field = 'slug'
 
+    def get_serializer_class(self):
+        """
+        change QuestionSerializer for updating question to
+        prevent n+1 problem and revoke answers from it.
+        """
+        if self.request.method in ['PUT', 'PATCH']:
+            return QuestionSerializer
+
+        return QuestionRetrieveSerializer
+
     def get_queryset(self):
 
-        answers = Answer.objects.select_related('owner').only('content', 'owner__username'
-                                                              , 'created', 'question')
+        answers = Answer.objects.select_related('owner').only('content', 'owner__username',
+                                                               'created', 'question')
 
         fields = ['tags__name', 'owner__username', 'title',
                   'body', 'slug', 'create_time', 'best_answer']
@@ -101,7 +110,7 @@ class TagView(generics.CreateAPIView):
 
 
 class QuestionListByTagView(generics.ListAPIView):
-    serializer_class = QuestionMiniSerializer
+    serializer_class = QuestionSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
@@ -145,6 +154,7 @@ class VoteView(APIView):
 class LeaderboardView(generics.ListAPIView):
     serializer_class = LeaderboardSerializer
     permission_classes = [permissions.AllowAny]
+    filter_backends = None
 
     def get_queryset(self):
         user_queryset = get_user_model().objects.only('username', 'point')

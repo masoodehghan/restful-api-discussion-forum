@@ -32,8 +32,8 @@ def create_unique_slug(obj, instance, new_slug=None):
         elif obj == 'Question':
             slug = slugify(instance.title)
 
-    instanceClass = instance.__class__
-    query_set = instanceClass.objects.filter(slug=slug)
+    instance_class = instance.__class__
+    query_set = instance_class.objects.filter(slug=slug)
     
     if query_set.exists():
         random_str = ''.join(choice(ascii_lowercase) for _ in range(5))

@@ -24,7 +24,7 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ['slug']
 
 
-class QuestionSerializer(serializers.ModelSerializer):
+class QuestionRetrieveSerializer(serializers.ModelSerializer):
 
     answers = AnswerSerializer(many=True, read_only=True)
     owner = serializers.CharField(source='owner.username', read_only=True)
@@ -33,6 +33,22 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = '__all__'
         read_only_fields = ['id', 'owner', 'slug', 'answers']
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    url = serializers.URLField(source='get_absolute_url', read_only=True)
+    owner = serializers.CharField(source='owner.username', read_only=True)
+
+    class Meta:
+        model = Question
+        fields = '__all__'
+        read_only_fields = ['url', 'owner', 'slug']
 
     def update(self, instance, validated_data):
         if validated_data.get('best_answer'):
@@ -49,16 +65,6 @@ class QuestionSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('answer doesnt belong to your question')
 
         return super().update(instance, validated_data)
-
-
-class QuestionMiniSerializer(serializers.ModelSerializer):
-    url = serializers.URLField(source='get_absolute_url', read_only=True)
-    owner = serializers.CharField(source='owner.username', read_only=True)
-
-    class Meta:
-        model = Question
-        exclude = ['best_answer']
-        read_only_fields = ['url', 'owner', 'slug']
 
 
 class VoteSerializer(serializers.ModelSerializer):
