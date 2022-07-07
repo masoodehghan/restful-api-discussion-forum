@@ -2,9 +2,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import (AnswerSerializer, QuestionSerializer,
-                          TagSerializer, VoteSerializer, QuestionRetrieveSerializer)
+                          TagSerializer, VoteSerializer, QuestionMiniSerializer)
 from .models import Answer, Question
-from rest_framework import permissions, status, generics, versioning
+from rest_framework import permissions, status, generics
 from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
 from django.db.models import Prefetch, F, Count
@@ -13,11 +13,12 @@ from django.views.decorators.vary import vary_on_cookie
 from django.utils.decorators import method_decorator
 from users.serializers import LeaderboardSerializer
 from django.contrib.auth import get_user_model
+from .tasks import send_email_to_question_owner_task
 
 
 class QuestionListVIew(generics.ListCreateAPIView):
 
-    serializer_class = QuestionSerializer
+    serializer_class = QuestionMiniSerializer
 
     filter_backends = [SearchFilter]
     search_fields = ['title', 'tags__name', 'owner__username']
@@ -51,19 +52,10 @@ class QuestionListVIew(generics.ListCreateAPIView):
 
 
 class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = QuestionSerializer
     permission_classes = [IsOwner]
 
     lookup_field = 'slug'
-
-    def get_serializer_class(self):
-        """
-        change QuestionSerializer for updating question to
-        prevent n+1 problem and revoke answers from it.
-        """
-        if self.request.method in ['PUT', 'PATCH']:
-            return QuestionSerializer
-
-        return QuestionRetrieveSerializer
 
     def get_queryset(self):
 
@@ -73,12 +65,12 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
         fields = ['tags__name', 'owner__username', 'title',
                   'body', 'slug', 'create_time', 'best_answer']
 
-        queryset = Question.objects.prefetch_related(Prefetch('answers', answers))
+        queryset = Question.objects.select_related('owner').prefetch_related(Prefetch('answers', answers))
 
         return queryset.only(*fields)
 
-    @method_decorator(cache_page(60*2))  # cache page for 2 minutes
-    @method_decorator(vary_on_cookie)
+    # @method_decorator(cache_page(60*2))  # cache page for 2 minutes
+    # @method_decorator(vary_on_cookie)
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
@@ -87,8 +79,12 @@ class AnswerCreateView(generics.CreateAPIView):
     serializer_class = AnswerSerializer
 
     def perform_create(self, serializer):
+        instance = serializer.save(owner=self.request.user)
+        question_owner = instance.question.owner
 
-        serializer.save(owner=self.request.user)
+        send_email_to_question_owner_task.delay(
+            question_owner.username, question_owner.email, instance.content, instance.owner.username
+        )
 
 
 class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
@@ -99,18 +95,8 @@ class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
         return Answer.objects.all()
 
 
-class TagView(generics.CreateAPIView):
-
-    """
-    only admins can add tag.
-    """
-
-    serializer_class = TagSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-
 class QuestionListByTagView(generics.ListAPIView):
-    serializer_class = QuestionSerializer
+    serializer_class = QuestionMiniSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):

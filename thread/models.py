@@ -6,7 +6,7 @@ from django.urls import reverse
 class Question(models.Model):
     title = models.CharField(max_length=50)
     body = models.TextField()
-    slug = models.SlugField(max_length=50, null=True, blank=True, unique=True)
+    slug = models.SlugField(max_length=50, blank=True, unique=True)
     
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, 
                               on_delete=models.CASCADE, 

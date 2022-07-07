@@ -1,0 +1,5 @@
+Hello {{name|safe}}
+
+{{answer_owner|safe}} answer to your question:
+
+{{answer_content|safe}}
