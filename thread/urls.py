@@ -10,7 +10,7 @@ urlpatterns = [
 
     path('tag/<slug:slug>/', views.QuestionListByTagView.as_view(), name='question-list-by-tag'),
 
-    path('vote/<int:answer_pk>/', views.VoteView.as_view(), name='vote'),
+    path('vote/create/', views.VoteView.as_view(), name='vote'),
     path('leaderboard/', views.LeaderboardView.as_view(), name='leaderboard')
     
 ]

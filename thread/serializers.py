@@ -134,6 +134,28 @@ class QuestionMiniSerializer(serializers.ModelSerializer):
 
 
 class VoteSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Vote
         fields = '__all__'
+        read_only_fields = ['owner']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        answer = validated_data['answer']
+        validated_data['owner'] = user
+        if answer.get_voter_ids:
+
+            # check if user already vote or not
+            if user.id in answer.get_voter_ids:
+                raise serializers.ValidationError('you already voted.')
+
+        if answer.owner == user:
+            raise serializers.ValidationError('you cant vote your own answer.')
+
+        user.point = F('point') + 5
+        user.save()
+
+        vote = Vote.objects.create(**validated_data)
+
+        return vote

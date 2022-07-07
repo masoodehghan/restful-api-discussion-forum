@@ -1,5 +1,10 @@
 version: "3.8"
 services:
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+
   db:
     image: postgres
     volumes:
@@ -8,6 +13,8 @@ services:
       - POSTGRES_DB=forum
       - POSTGRES_USER=forum_admin
       - POSTGRES_PASSWORD=forumadmin
+      - POSTGRES_ENGINE=django.db.backends.postgresql
+      - POSTGRES_PORT=5432
       
 
   app:
@@ -23,8 +30,25 @@ services:
       - POSTGRES_DB=forum
       - POSTGRES_USER=forum_admin
       - POSTGRES_PASSWORD=forumadmin
-      - "SECRET_KEY=django-insecure-6l7%rqae=s3s&f4h_48=h6bq-frj!lsv0q%t90e^j*tjy9m6l%"
-      - DEBUG=False
-
+      - POSTGRES_ENGINE=django.db.backends.postgresql
+      - POSTGRES_PORT=5432
+      
+  
     depends_on:
       - db
+
+
+  celery:
+    restart: always
+    build: 
+      context: .
+
+    command: celery -A forum worker -l INFO
+    
+    volumes:
+      - .:/django-forum
+    container_name: celery
+    depends_on:
+      - db
+      - redis
+      - app

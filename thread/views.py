@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import (AnswerSerializer, QuestionSerializer,
                           TagSerializer, VoteSerializer, QuestionMiniSerializer)
-from .models import Answer, Question
+from .models import Answer, Question, Vote
 from rest_framework import permissions, status, generics
 from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
@@ -108,33 +108,13 @@ class QuestionListByTagView(generics.ListAPIView):
         return queryset.filter(tags__slug=self.kwargs['slug']).only(*fields)
 
 
-class VoteView(APIView):
+class VoteView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = VoteSerializer
+    queryset = Vote.objects.all()
 
-    def post(self, request, answer_pk, *args, **kwargs):
-
-        answer = get_object_or_404(Answer, id=answer_pk)
-        data = {'value': int(request.data['value'])}
-        serializer = VoteSerializer(data=data)
-        user = request.user
-        if answer.get_voters.exists():
-
-            # check if user already vote or not
-            if user.id in answer.get_voters:
-                return Response({'message': 'you already voted!'}, status.HTTP_400_BAD_REQUEST)
-        
-        if answer.owner == user:
-            return Response({'message': 'you cant vote your own answer'}, status.HTTP_400_BAD_REQUEST)
-
-        if serializer.is_valid():
-            serializer.save(owner=user, answer=answer)
-
-            user.point = F('point') + 5
-            user.save()
-            
-            return Response({'message': 'vote submitted successfully.'}, status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class LeaderboardView(generics.ListAPIView):

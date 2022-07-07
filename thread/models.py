@@ -37,7 +37,7 @@ class Answer(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True)
 
     @property
-    def get_voters(self):
+    def get_voter_ids(self):
         query_set = self.vote.all().values_list('owner__id', flat=True)
         return query_set
     
