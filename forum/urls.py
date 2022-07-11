@@ -4,6 +4,7 @@ from django.conf import settings
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
+from django.conf.urls.static import static
 
 
 schema_view = get_schema_view(
@@ -18,7 +19,6 @@ schema_view = get_schema_view(
 )
 
 v1_urlpatterns = [
-    path('admin/', admin.site.urls),
     path('accounts/', include('users.urls')),
     path('discuss/', include('thread.urls')),
     path('accounts/', include('dj_rest_auth.urls')),
@@ -28,9 +28,12 @@ v1_urlpatterns = [
 ]
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     re_path(r'^api/v1/', include((v1_urlpatterns, 'v1'), namespace='v1')),
 ]
 
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar

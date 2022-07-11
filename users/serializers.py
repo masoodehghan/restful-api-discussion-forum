@@ -2,6 +2,7 @@ from .models import User
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 import django.contrib.auth.password_validation as validator
+from dj_rest_auth.serializers import UserDetailsSerializer
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -51,10 +52,16 @@ class LeaderboardSerializer(serializers.Serializer):
     best_answer_count = serializers.IntegerField(min_value=0, read_only=True)
     username = serializers.CharField(max_length=150, read_only=True)
 
-
     def create(self, validated_data):
         pass
 
     def update(self, instance, validated_data):
         pass
 
+
+class CustomUserDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = UserDetailsSerializer.Meta.fields + ('point',)
+        read_only_fields = UserDetailsSerializer.Meta.read_only_fields + ('point',)
