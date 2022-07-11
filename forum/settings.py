@@ -46,8 +46,8 @@ INSTALLED_APPS = [
 
 REST_USE_JWT = True
 
-JWT_AUTH_COOKIE = 'users-auth'
-JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
+JWT_AUTH_COOKIE = 'acc-token'
+JWT_AUTH_REFRESH_COOKIE = 'refresh-token'
 
 SITE_ID = 1
 
@@ -65,12 +65,13 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20
+    'PAGE_SIZE': 20,
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=10),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),  # TODO: change timedelta 5 minutes
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=40),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': False,
@@ -141,11 +142,10 @@ DATABASES = {
     'default': {
         'ENGINE': os.environ.get('POSTGRES_ENGINE', 'django.db.backends.sqlite3'),
         'NAME': os.environ.get('POSTGRES_DB', BASE_DIR / 'db.sqlite3'),
-
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': 'db',
-        'PORT': 5432,
+        'PORT': os.environ.get('POSTGRES_PORT'),
     },
 
 }

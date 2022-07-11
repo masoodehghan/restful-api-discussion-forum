@@ -32,7 +32,7 @@ class QuestionTest(test.APITestCase):
 
     def test_create_question(self):
 
-        url = reverse('question')
+        url = reverse('v1:question')
         data = {'title': 'masood', 'body': 'some body content', 'tags': [{'name': 'test'}, {'name': 'kir'}]}
 
         self.user_login(pk=1)
@@ -41,7 +41,7 @@ class QuestionTest(test.APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
     def test_question_list(self):
-        url = reverse('question')
+        url = reverse('v1:question')
         response = self.api_client.get(url, {'search': 'test'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -52,7 +52,7 @@ class QuestionTest(test.APITestCase):
 
     def test_question_update(self):
 
-        url = reverse('question-detail', kwargs={'slug': self.question.slug})
+        url = reverse('v1:question-detail', kwargs={'slug': self.question.slug})
         
         data = {'title': 'test update', 'body': 'body test 2', 'slug': 'test-update'}
 
@@ -71,13 +71,13 @@ class QuestionTest(test.APITestCase):
     def test_question_delete(self):
 
         self.user_login(1)
-        url = reverse('question-detail', kwargs={'slug': self.question.slug})
+        url = reverse('v1:question-detail', kwargs={'slug': self.question.slug})
         response = self.api_client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_answer_create(self):
-        url = reverse('answer-create')
+        url = reverse('v1:answer-create')
         data = {'content': 'answer content', 'question': self.question.id}
         self.user_login(pk=2)
         response = self.api_client.post(url, data)
@@ -113,7 +113,7 @@ class QuestionTest(test.APITestCase):
         self.assertNotEqual(self.answer.owner.point, 0)
 
     def test_vote_to_answer(self):
-        url = reverse('vote')
+        url = reverse('v1:vote')
         data = {'answer': self.answer.id, 'value': 1}
 
         self.user_login(1)

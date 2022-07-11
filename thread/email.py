@@ -7,9 +7,6 @@ from django.conf import settings
 def send_answer_email(question_owner_name, question_owner_email,
                       answer_content, answer_owner_username):
 
-    if question_owner_name == answer_owner_username:
-        return
-
     context = {
         'name': question_owner_name,
         'email': question_owner_email,

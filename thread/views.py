@@ -1,13 +1,11 @@
-from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from .serializers import (AnswerSerializer, QuestionSerializer,
-                          TagSerializer, VoteSerializer, QuestionMiniSerializer)
+                          VoteSerializer, QuestionMiniSerializer)
+
 from .models import Answer, Question, Vote
-from rest_framework import permissions, status, generics
+from rest_framework import permissions, generics, versioning
 from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
-from django.db.models import Prefetch, F, Count
+from django.db.models import Prefetch, Count
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie
 from django.utils.decorators import method_decorator
@@ -19,7 +17,7 @@ from .tasks import send_email_to_question_owner_task
 class QuestionListVIew(generics.ListCreateAPIView):
 
     serializer_class = QuestionMiniSerializer
-
+    versioning_class = versioning.NamespaceVersioning
     filter_backends = [SearchFilter]
     search_fields = ['title', 'tags__name', 'owner__username']
 
@@ -82,9 +80,11 @@ class AnswerCreateView(generics.CreateAPIView):
         instance = serializer.save(owner=self.request.user)
         question_owner = instance.question.owner
 
-        send_email_to_question_owner_task.delay(
-            question_owner.username, question_owner.email, instance.content, instance.owner.username
-        )
+        if instance.owner_id != question_owner.id:
+
+            send_email_to_question_owner_task.delay(
+                question_owner.username, question_owner.email, instance.content, instance.owner.username
+            )
 
 
 class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):

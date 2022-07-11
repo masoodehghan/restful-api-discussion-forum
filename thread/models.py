@@ -24,7 +24,7 @@ class Question(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('question-detail', kwargs={'slug': self.slug})
+        return reverse('v1:question-detail', kwargs={'slug': self.slug})
     
 
 class Answer(models.Model):
@@ -45,7 +45,7 @@ class Answer(models.Model):
         return self.content[:40]
 
     def get_absolute_url(self):
-        return reverse('answer-detail', kwargs={'pk': self.id})
+        return reverse('v1:answer-detail', kwargs={'pk': self.id})
     
     
 class Tag(models.Model):
@@ -56,7 +56,7 @@ class Tag(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('question-list-by-tag', kwargs={'slug': self.slug})
+        return reverse('v1:question-list-by-tag', kwargs={'slug': self.slug})
     
 
 class Vote(models.Model):
