@@ -5,6 +5,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
 from django.conf.urls.static import static
+from dj_rest_auth.registration.views import VerifyEmailView
 
 
 schema_view = get_schema_view(
@@ -21,8 +22,6 @@ schema_view = get_schema_view(
 v1_urlpatterns = [
     path('accounts/', include('users.urls')),
     path('discuss/', include('thread.urls')),
-    path('accounts/', include('dj_rest_auth.urls')),
-    path('accounts/register/', include('dj_rest_auth.registration.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
@@ -30,6 +29,10 @@ v1_urlpatterns = [
 urlpatterns = [
     path('admin/', admin.site.urls),
     re_path(r'^api/v1/', include((v1_urlpatterns, 'v1'), namespace='v1')),
+    
+    path('api/v1/accounts/register/', include('dj_rest_auth.registration.urls')),
+    path('api/v1/accounts/', include('dj_rest_auth.urls')),
+    
 ]
 
 

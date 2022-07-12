@@ -1,7 +1,8 @@
+from django.shortcuts import get_object_or_404
 from .serializers import (AnswerSerializer, QuestionSerializer,
                           VoteSerializer, QuestionMiniSerializer)
 
-from .models import Answer, Question, Vote
+from .models import Answer, Question, Vote, Tag
 from rest_framework import permissions, generics, versioning
 from .permissions import IsOwner
 from rest_framework.filters import SearchFilter
@@ -11,6 +12,8 @@ from django.views.decorators.vary import vary_on_cookie
 from django.utils.decorators import method_decorator
 from users.serializers import LeaderboardSerializer
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import NotFound
+from rest_framework.status import HTTP_404_NOT_FOUND
 from .tasks import send_email_to_question_owner_task
 
 
@@ -103,10 +106,15 @@ class QuestionListByTagView(generics.ListAPIView):
         fields = [
             'slug', 'body', 'tags', 'create_time', 'title', 'owner__username', 'tags__id'
         ]
-
+        
+        tags = get_object_or_404(Tag, slug=self.kwargs['slug'])
+        
         queryset = Question.objects.select_related('owner').prefetch_related('tags')
-        return queryset.filter(tags__slug=self.kwargs['slug']).only(*fields)
-
+        
+        return queryset.filter(tags=tags).only(*fields)
+        
+        
+            
 
 class VoteView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]

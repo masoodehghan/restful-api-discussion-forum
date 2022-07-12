@@ -51,8 +51,9 @@ class QuestionSerializer(serializers.ModelSerializer):
     def __update_tags(instance: Question, validated_tags):
 
         tags_list = [x['name'] for x in validated_tags]
-        instance.tags.clear()
         if tags_list:
+            instance.tags.clear()
+    
             question_tags = instance.tags.values_list('name', flat=True)
             all_tags = Tag.objects.values_list('name', flat=True)
             new_tags = []
