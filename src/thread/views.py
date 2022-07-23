@@ -26,9 +26,15 @@ class QuestionListVIew(generics.ListCreateAPIView):
 
     def get_queryset(self):
         fields = [
-            'slug', 'body', 'tags', 'create_time', 'title', 'owner__username', 'tags__id'
-        ]
-        queryset = Question.objects.select_related('owner').prefetch_related('tags').order_by('-create_time')
+            'slug',
+            'body',
+            'tags',
+            'create_time',
+            'title',
+            'owner__username',
+            'tags__id']
+        queryset = Question.objects.select_related(
+            'owner').prefetch_related('tags').order_by('-create_time')
 
         return queryset.only(*fields)
 
@@ -60,13 +66,14 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
 
-        answers = Answer.objects.select_related('owner').only('content', 'owner__username',
-                                                               'created', 'question')
+        answers = Answer.objects.select_related('owner').only(
+            'content', 'owner__username', 'created', 'question')
 
         fields = ['tags__name', 'owner__username', 'title',
                   'body', 'slug', 'create_time', 'best_answer']
 
-        queryset = Question.objects.select_related('owner').prefetch_related(Prefetch('answers', answers))
+        queryset = Question.objects.select_related(
+            'owner').prefetch_related(Prefetch('answers', answers))
 
         return queryset.only(*fields)
 
@@ -74,6 +81,11 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     # @method_decorator(vary_on_cookie)
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['question_id'] = self.get_object().id
+        return context
 
 
 class AnswerCreateView(generics.CreateAPIView):
@@ -86,8 +98,10 @@ class AnswerCreateView(generics.CreateAPIView):
         if instance.owner_id != question_owner.id:
 
             send_email_to_question_owner_task.delay(
-                question_owner.username, question_owner.email, instance.content, instance.owner.username
-            )
+                question_owner.username,
+                question_owner.email,
+                instance.content,
+                instance.owner.username)
 
 
 class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
@@ -104,17 +118,21 @@ class QuestionListByTagView(generics.ListAPIView):
 
     def get_queryset(self):
         fields = [
-            'slug', 'body', 'tags', 'create_time', 'title', 'owner__username', 'tags__id'
-        ]
-        
+            'slug',
+            'body',
+            'tags',
+            'create_time',
+            'title',
+            'owner__username',
+            'tags__id']
+
         tags = get_object_or_404(Tag, slug=self.kwargs['slug'])
-        
-        queryset = Question.objects.select_related('owner').prefetch_related('tags')
-        
+
+        queryset = Question.objects.select_related(
+            'owner').prefetch_related('tags')
+
         return queryset.filter(tags=tags).only(*fields)
-        
-        
-            
+
 
 class VoteView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -132,11 +150,12 @@ class LeaderboardView(generics.ListAPIView):
 
     def get_queryset(self):
         user_queryset = get_user_model().objects.only('username', 'point')
-        queryset = user_queryset.annotate(best_answer_count=Count('answers_owner__best_answer_id'))
+        queryset = user_queryset.annotate(
+            best_answer_count=Count('answers_owner__best_answer_id'))
 
         return queryset.order_by('-point')
 
     @method_decorator(vary_on_cookie)
-    @method_decorator(cache_page(60*10))
+    @method_decorator(cache_page(60 * 10))
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)

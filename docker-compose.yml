@@ -18,12 +18,14 @@ services:
       
   app:
     build: .
-    command: gunicorn forum.wsgi:application --bind 0.0.0.0:8000 --reload
+    command: gunicorn --bind 0.0.0.0:8000 forum.wsgi:application --reload
     expose:
       - 8000
     volumes:
-      - .:/django-forum
+      - ./src:/django-forum
       - staticfiles:/django-forum/staticfiles
+    env_file:
+      - ./.env
 
     container_name: forum_app
 
@@ -59,8 +61,12 @@ services:
     command: celery -A forum worker -l INFO
     
     volumes:
-      - .:/django-forum
+      - ./src:/django-forum
     container_name: celery
+
+    env_file:
+      - ./.env
+      
     depends_on:
       - db
       - redis

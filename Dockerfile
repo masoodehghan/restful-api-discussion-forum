@@ -6,7 +6,7 @@ WORKDIR /django-forum
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-COPY . /django-forum/
+COPY ./src/ /django-forum/
 
 
 

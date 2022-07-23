@@ -27,6 +27,11 @@ class TagSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
 
+    class BestAnswerField(serializers.PrimaryKeyRelatedField):
+        def get_queryset(self):
+            return Answer.objects.filter(question=self.context['question_id'])
+
+    best_answer = BestAnswerField(required=False, allow_null=True)
     answers = AnswerSerializer(many=True, read_only=True)
     owner = serializers.CharField(source='owner.username', read_only=True)
     tags = TagSerializer(many=True, required=False)
@@ -53,7 +58,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         tags_list = [x['name'] for x in validated_tags]
         if tags_list:
             instance.tags.clear()
-    
+
             question_tags = instance.tags.values_list('name', flat=True)
             all_tags = Tag.objects.values_list('name', flat=True)
             new_tags = []
@@ -71,11 +76,13 @@ class QuestionSerializer(serializers.ModelSerializer):
             new_created_tags = []
             if new_tags:
                 new_created_tags = Tag.objects.bulk_create(
-                    Tag(name=tag, slug=create_unique_slug(tag)) for tag in new_tags
-                )
+                    Tag(name=tag, slug=create_unique_slug(tag))
+                    for tag in new_tags)
             tags = []
             if tags_list:
-                tags = Tag.objects.filter(name__in=tags_list).values_list('id', flat=True)
+                tags = Tag.objects.filter(
+                    name__in=tags_list).values_list(
+                    'id', flat=True)
 
             instance.tags.add(*tags, *new_created_tags)
 
@@ -84,13 +91,15 @@ class QuestionSerializer(serializers.ModelSerializer):
         if answer in instance.answers.all():
 
             if answer.owner_id == instance.owner_id:
-                raise serializers.ValidationError('Your own answer cant be the best answer')
+                raise serializers.ValidationError(
+                    'Your own answer cant be the best answer')
 
             answer.owner.point = F('point') + 10
             answer.owner.save()
 
         else:
-            raise serializers.ValidationError('answer doesnt belong to your question')
+            raise serializers.ValidationError(
+                'answer doesnt belong to your question')
 
 
 class QuestionMiniSerializer(serializers.ModelSerializer):
@@ -126,10 +135,14 @@ class QuestionMiniSerializer(serializers.ModelSerializer):
 
             tags = []
             if new_tag:
-                tags = [Tag(name=tag_name, slug=create_unique_slug(tag_name)) for tag_name in new_tag]
+                tags = [
+                    Tag(name=tag_name, slug=create_unique_slug(tag_name))
+                    for tag_name in new_tag]
                 Tag.objects.bulk_create(tags)
 
-            existed_tags = Tag.objects.filter(name__in=tags_list).values_list('id', flat=True)
+            existed_tags = Tag.objects.filter(
+                name__in=tags_list).values_list(
+                'id', flat=True)
 
             instance.tags.add(*tags, *existed_tags)
 
