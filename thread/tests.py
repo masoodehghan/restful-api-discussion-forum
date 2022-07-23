@@ -9,22 +9,28 @@ logger = logging.getLogger(__name__)
 
 
 class QuestionTest(test.APITestCase):
-    
+
     api_client = test.APIClient()
 
     @classmethod
     def setUpTestData(cls):
-        user1 = User.objects.create_user(username='test user1', email='test22323@test.com', password='m12457896')
+        cls.user1 = User.objects.create_user(
+            username='test user1',
+            email='test22323@test.com',
+            password='m12457896')
 
-        user2 = User.objects.create_user(username='test user2', email='test2@test.com', password='m12457896')
+        cls.user2 = User.objects.create_user(
+            username='test user2',
+            email='test2@test.com',
+            password='m12457896')
 
-        question = Question.objects.create(title='test', body='test body', owner=user1)
+        cls.question = Question.objects.create(
+            title='test', body='test body', owner=cls.user1)
 
-        Answer.objects.create(content='test body answer', question=question, owner=user2)
-
-    def setUp(self):
-        self.question = Question.objects.get(id=1)
-        self.answer = Answer.objects.get(id=1)
+        cls.answer = Answer.objects.create(
+            content='test body answer',
+            question=cls.question,
+            owner=cls.user2)
 
     def user_login(self, pk):
         user = User.objects.get(id=pk)
@@ -33,28 +39,34 @@ class QuestionTest(test.APITestCase):
     def test_create_question(self):
 
         url = reverse('v1:question')
-        data = {'title': 'masood', 'body': 'some body content', 'tags': [{'name': 'test'}, {'name': 'kir'}]}
+        data = {'title': 'masood', 'body': 'some body content',
+                'tags': [{'name': 'test'}, {'name': 'kir'}]}
 
         self.user_login(pk=1)
         response = self.api_client.post(url, data, format='json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
     def test_question_list(self):
         url = reverse('v1:question')
         response = self.api_client.get(url, {'search': 'test'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_question_detail(self):
-        response = self.client.get(self.question.get_absolute_url(), format='json')
+        response = self.client.get(
+            self.question.get_absolute_url(),
+            format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], self.question.title)
 
     def test_question_update(self):
 
         url = reverse('v1:question-detail', kwargs={'slug': self.question.slug})
-        
-        data = {'title': 'test update', 'body': 'body test 2', 'slug': 'test-update'}
+
+        data = {
+            'title': 'test update',
+            'body': 'body test 2',
+            'slug': 'test-update'}
 
         user = User.objects.get(id=2)
         self.api_client.force_authenticate(user)
@@ -110,6 +122,7 @@ class QuestionTest(test.APITestCase):
 
         response = self.api_client.patch(self.question.get_absolute_url(), data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         self.assertNotEqual(self.answer.owner.point, 0)
 
     def test_vote_to_answer(self):
@@ -119,10 +132,12 @@ class QuestionTest(test.APITestCase):
         self.user_login(1)
         response = self.api_client.post(url, data)
 
-        response_2 = self.api_client.post(url, data)  # check for voting by same user again
+        # check for voting by same user again
+        response_2 = self.api_client.post(url, data)
 
         self.user_login(self.answer.owner_id)
-        response_3 = self.api_client.post(url, data)  # check for voting by answer owner himself
+        # check for voting by answer owner himself
+        response_3 = self.api_client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_2.status_code, status.HTTP_400_BAD_REQUEST)

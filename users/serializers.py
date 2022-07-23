@@ -6,7 +6,11 @@ from dj_rest_auth.serializers import UserDetailsSerializer
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(max_length=100, required=True, write_only=True)
+    password = serializers.CharField(
+        max_length=100,
+        required=True,
+        write_only=True,
+        validators=[validator])
     password2 = serializers.CharField(max_length=100, required=True, write_only=True)
 
     class Meta:
@@ -17,17 +21,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         if data['password'] != data['password2']:
             raise serializers.ValidationError('passwords are not equal')
         data.pop('password2')
-        user = User(**data)
-        password = data.get('password')
-        errors = dict()
 
-        try:
-            validator.validate_password(password=password, user=user)
-        except ValidationError as e:
-            errors['password'] = list(e.messages)
-
-        if errors:
-            raise serializers.ValidationError(errors)
 
         return super(RegisterSerializer, self).validate(data)
 

@@ -8,7 +8,7 @@ services:
   db:
     image: postgres
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=forum
       - POSTGRES_USER=forum_admin
@@ -16,14 +16,15 @@ services:
       - POSTGRES_ENGINE=django.db.backends.postgresql
       - POSTGRES_PORT=5432
       
-
   app:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn forum.wsgi:application --bind 0.0.0.0:8000 --reload
+    expose:
+      - 8000
     volumes:
       - .:/django-forum
-    ports:
-      - "8000:8000"
+      - staticfiles:/django-forum/staticfiles
+
     container_name: forum_app
 
     environment:
@@ -37,6 +38,18 @@ services:
     depends_on:
       - db
 
+  nginx:
+    image: nginx:latest
+
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - staticfiles:/var/www/staticfiles
+
+    ports:
+      - 80:80
+
+    depends_on:
+      - app
 
   celery:
     restart: always
@@ -52,3 +65,8 @@ services:
       - db
       - redis
       - app
+
+volumes:
+  staticfiles:
+  nginx.conf:
+  postgres-data:
