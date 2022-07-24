@@ -2,10 +2,6 @@ from rest_framework import test, status
 from .models import Answer, Question
 from django.urls import reverse
 from users.models import User
-import logging
-
-
-logger = logging.getLogger(__name__)
 
 
 class QuestionTest(test.APITestCase):
@@ -40,7 +36,7 @@ class QuestionTest(test.APITestCase):
 
         url = reverse('v1:question')
         data = {'title': 'masood', 'body': 'some body content',
-                'tags': [{'name': 'test'}, {'name': 'kir'}]}
+                'tags': [{'name': 'test'}, {'name': 'ms'}]}
 
         self.user_login(pk=1)
         response = self.api_client.post(url, data, format='json')
