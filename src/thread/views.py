@@ -146,7 +146,7 @@ class VoteView(generics.CreateAPIView):
 class LeaderboardView(generics.ListAPIView):
     serializer_class = LeaderboardSerializer
     permission_classes = [permissions.AllowAny]
-    filter_backends = None
+    filter_backends = []
 
     def get_queryset(self):
         user_queryset = get_user_model().objects.only('username', 'point')

@@ -114,7 +114,7 @@ class QuestionMiniSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
 
     def create(self, validated_data):
-        tags_list = [x['name'] for x in validated_data.pop('tags')]
+        tags_list = [x['name'] for x in validated_data.pop('tags', [])]
         question = Question.objects.create(**validated_data)
 
         self.__create_tags(question, tags_list)
