@@ -118,7 +118,7 @@ class QuestionTest(test.APITestCase):
 
         response = self.api_client.patch(self.question.get_absolute_url(), data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
+        self.answer.owner.refresh_from_db()
         self.assertNotEqual(self.answer.owner.point, 0)
 
     def test_vote_to_answer(self):

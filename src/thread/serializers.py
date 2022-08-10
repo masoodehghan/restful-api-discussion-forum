@@ -131,7 +131,6 @@ class QuestionMiniSerializer(serializers.ModelSerializer):
             for tag in tags_list:
                 if tag not in tags_names:
                     new_tag.append(tag)
-                    tags_list.remove(tag)
 
             tags = []
             if new_tag:
