@@ -32,7 +32,6 @@ urlpatterns = [
     
     path('api/v1/accounts/register/', include('dj_rest_auth.registration.urls')),
     path('api/v1/accounts/', include('dj_rest_auth.urls')),
-    
 ]
 
 
