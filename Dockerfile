@@ -1,12 +1,17 @@
-FROM python:3.10
+FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-WORKDIR /django-forum
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN adduser forum_admin --disabled-password
+RUN su forum_admin
 
-COPY ./src/ /django-forum/
+WORKDIR /home/forum_admin/django-forum
+COPY --chown=user:forum_admin requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+USER forum_admin
+
+
+COPY --chown=user:forum_admin src /home/forum_admin/django-forum/
 
 
 

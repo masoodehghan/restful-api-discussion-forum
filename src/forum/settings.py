@@ -72,8 +72,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),  # TODO: change timedelta 5 minutes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=40),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # TODO: change timedelta 5 minutes
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
 }
 
 AUTH_USER_MODEL = 'users.User'
