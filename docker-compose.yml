@@ -61,27 +61,7 @@ services:
     depends_on:
       - app
 
-  # celery:
-  #   restart: always
-  #   build: 
-  #     context: .
-  #   image: masood04/celery
-
-  #   command: celery -A forum worker -l INFO
-    
-  #   volumes:
-  #     - ./src:/django-forum
-  #   container_name: celery
-
-  #   env_file:
-  #     - ./.env
-      
-  #   depends_on:
-  #     - db
-  #     - redis
-  #     - app
-
 volumes:
   staticfiles:
-  nginx.conf:
+
   postgres-data:
