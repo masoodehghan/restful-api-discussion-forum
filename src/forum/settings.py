@@ -28,13 +28,9 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 
     'rest_framework',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
     'dj_rest_auth.registration',
     'django_filters',
     'debug_toolbar',
-    'dj_rest_auth',
     'rest_framework.authtoken',
     'drf_yasg',
 
@@ -42,14 +38,11 @@ INSTALLED_APPS = [
     'thread',
 ]
 
-REST_AUTH_SERIALIZERS = {
-    'USER_DETAILS_SERIALIZER': 'users.serializers.CustomUserDetailSerializer'
-}
 
 REST_USE_JWT = True
 
-JWT_AUTH_COOKIE = 'acc-token'
-JWT_AUTH_REFRESH_COOKIE = 'refresh-token'
+JWT_AUTH_COOKIE = 'acc_token'
+JWT_AUTH_REFRESH_COOKIE = 'refresh_token'
 
 SITE_ID = 1
 
@@ -62,7 +55,7 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+        'users.authentication.JWTCookieAuthentication',
 
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
@@ -138,7 +131,7 @@ CACHES = {
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
-AUTHENTICATION_BACKENDS = ['users.managers.UsernameOrEmailModelBackend']
+AUTHENTICATION_BACKENDS = ['users.authentication.UsernameOrEmailModelBackend']
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -206,3 +199,8 @@ DEBUG_TOOLBAR_PANELS = [
 
 CELERY_BROKER_URL = "redis://redis:6379"
 CELERY_RESULT_BACKEND = "redis://redis:6379"
+
+AUTH_USE_COOKIE = env.bool('AUTH_USE_COOKIE', default=None)
+SESSION_AUTH = env.bool('SESSION_AUTH', default=None)
+
+LOGIN_URL = '/api/v1/accounts/login/'
