@@ -6,8 +6,9 @@ RUN adduser forum_admin --disabled-password
 RUN su forum_admin
 
 WORKDIR /home/forum_admin/django-forum
-COPY --chown=user:forum_admin requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+COPY --chown=user:forum_admin Pipfile Pipfile.lock /home/forum_admin/django-forum/
+RUN pip install pipenv && pipenv install --system
+
 USER forum_admin
 
 

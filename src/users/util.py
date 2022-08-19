@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
+import os
 
 
 def jwt_encode(user):
@@ -57,18 +58,21 @@ def unset_cookie_jwt(response):
 
 
 def send_password_reset_to_user(user_email, uid, token, domain='127.0.0.1:8000', use_https=False):
-    protocol = 'https' if use_https else 'http'
-    url = reverse('v1:password_reset_confirm', kwargs={'uid': uid, 'token': token})
-    message = f'{protocol}://{domain}{url}'
-
-    subject = 'email to reset password'
-
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user_email]
-    )
+    pass
+    # protocol = 'https' if use_https else 'http'
+    # url = reverse('v1:password_reset_confirm', kwargs={'uid': uid, 'token': token})
+    # domain = 'localhost' if os.environ.get('USING_NGINX') else domain
+    #
+    # message = f'{protocol}://{domain}{url}'
+    #
+    # subject = 'email to reset password'
+    #
+    # send_mail(
+    #     subject,
+    #     message,
+    #     settings.DEFAULT_FROM_EMAIL,
+    #     [user_email]
+    # )
 
 
 sensitive_post_parameters_m = method_decorator(

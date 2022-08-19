@@ -25,21 +25,23 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ['slug']
 
 
-class QuestionSerializer(serializers.ModelSerializer):
+class QuestionUpdateSerializer(serializers.ModelSerializer):
 
     class BestAnswerField(serializers.PrimaryKeyRelatedField):
+
         def get_queryset(self):
             return Answer.objects.filter(question=self.context['question_id'])
 
     best_answer = BestAnswerField(required=False, allow_null=True)
-    answers = AnswerSerializer(many=True, read_only=True)
-    owner = serializers.CharField(source='owner.username', read_only=True)
     tags = TagSerializer(many=True, required=False)
 
     class Meta:
         model = Question
         fields = '__all__'
-        read_only_fields = ['owner', 'slug', 'answers']
+        read_only_fields = ['owner', 'slug']
+
+    def create(self, validated_data):
+        raise NotImplemented()
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', [])
@@ -102,7 +104,22 @@ class QuestionSerializer(serializers.ModelSerializer):
                 'answer doesnt belong to your question')
 
 
-class QuestionMiniSerializer(serializers.ModelSerializer):
+class QuestionRetrieveSerializer(serializers.ModelSerializer):
+
+    answers = AnswerSerializer(many=True, read_only=True)
+    owner = serializers.CharField(source='owner.username', read_only=True)
+    tags = TagSerializer(many=True, required=False, read_only=True)
+
+    class Meta:
+        model = Question
+        fields = '__all__'
+        read_only_fields = ['owner', 'slug', 'answers']
+
+    def update(self, instance, validated_data):
+        raise NotImplemented()
+
+
+class QuestionListCreateSerializer(serializers.ModelSerializer):
     url = serializers.URLField(source='get_absolute_url', read_only=True)
     owner = serializers.CharField(source='owner.username', read_only=True)
 

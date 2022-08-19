@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
-from .serializers import (AnswerSerializer, QuestionSerializer,
-                          VoteSerializer, QuestionMiniSerializer)
+from .serializers import (
+    AnswerSerializer, QuestionRetrieveSerializer, QuestionUpdateSerializer,
+    VoteSerializer, QuestionListCreateSerializer)
 
 from .models import Answer, Question, Vote, Tag
 from rest_framework import permissions, generics, versioning
@@ -19,7 +20,7 @@ from .tasks import send_email_to_question_owner_task
 
 class QuestionListVIew(generics.ListCreateAPIView):
 
-    serializer_class = QuestionMiniSerializer
+    serializer_class = QuestionListCreateSerializer
     versioning_class = versioning.NamespaceVersioning
     filter_backends = [SearchFilter]
     search_fields = ['title', 'tags__name', 'owner__username']
@@ -33,8 +34,9 @@ class QuestionListVIew(generics.ListCreateAPIView):
             'title',
             'owner__username',
             'tags__id']
-        queryset = Question.objects.select_related(
-            'owner').prefetch_related('tags').order_by('-create_time')
+
+        queryset = Question.objects.select_related('owner')\
+            .prefetch_related('tags').order_by('-create_time')
 
         return queryset.only(*fields)
 
@@ -53,16 +55,23 @@ class QuestionListVIew(generics.ListCreateAPIView):
     #                                         Q(tags__name__icontains=q) |
     #                                         Q(owner__username__icontains=q))
     #
-    #     serializer = QuestionSerializer(question, many=True)
+    #     serializer = QuestionRetrieveSerializer(question, many=True)
     #
     #     return Response(serializer.data)
 
 
 class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = QuestionSerializer
     permission_classes = [IsOwner]
 
     lookup_field = 'slug'
+    object = None
+
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return QuestionUpdateSerializer
+
+        else:
+            return QuestionRetrieveSerializer
 
     def get_queryset(self):
 
@@ -82,9 +91,13 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+    def get_object(self):
+        self.object = super().get_object()
+        return self.object
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['question_id'] = self.get_object().id
+        context['question_id'] = self.object.id
         return context
 
 
@@ -113,7 +126,7 @@ class AnswerDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
 
 
 class QuestionListByTagView(generics.ListAPIView):
-    serializer_class = QuestionMiniSerializer
+    serializer_class = QuestionListCreateSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):

@@ -25,10 +25,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
 
     'rest_framework',
-    'dj_rest_auth.registration',
     'django_filters',
     'debug_toolbar',
     'rest_framework.authtoken',

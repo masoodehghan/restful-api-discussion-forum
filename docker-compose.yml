@@ -38,6 +38,7 @@ services:
       - POSTGRES_PASSWORD=forumadmin
       - POSTGRES_ENGINE=django.db.backends.postgresql
       - POSTGRES_PORT=5432
+      - USING_NGINX=True
       
   
     depends_on:
