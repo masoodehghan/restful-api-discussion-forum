@@ -1,4 +1,11 @@
 
-you can pull application image by this command: docker pull masood04/forum_app:latest <br>
+<div> 
+<h1>App Installation and setup</h1>
+you can pull application image by this command:
+docker pull masood04/forum_app:latest <br>
 
-and to use nginx image for this app excute: docker pull masood04/forum_nginx:latest
+and to use nginx image for this app excute: <br>
+docker pull masood04/forum_nginx:latest
+
+Rename sample.env to .env and fill data manualy.
+</div>
