@@ -8,5 +8,5 @@ and to use nginx image for this app excute: <br>
 <p> docker pull masood04/forum_nginx:latest </p>
 <br>
  
-Rename sample.env to .env and fill data manualy.
+Rename sample.env to .env and fill data manually.
 </div>
