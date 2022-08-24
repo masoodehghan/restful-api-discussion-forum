@@ -21,7 +21,7 @@ services:
       context: ./
       dockerfile: ./Dockerfile
     command: bash -c "gunicorn --bind 0.0.0.0:8000 forum.wsgi:application --reload & celery -A forum worker -l INFO"
-    image: masood04/app
+    image: masood04/forum_app
     expose:
       - 8000
     volumes:
