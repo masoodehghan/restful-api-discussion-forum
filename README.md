@@ -1,7 +1,6 @@
 
 <div> 
 <h1>App Installation and setup</h1>
-you can pull application image by this command: <br>
 <ol> 
 <li> install docker desktop <a href="https://docs.docker.com/get-docker/"> docker site </a> </li>
 <li> docker pull masood04/forum_app:latest </li>
