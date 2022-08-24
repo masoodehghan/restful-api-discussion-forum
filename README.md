@@ -7,6 +7,7 @@
 <li> git clone https://github.com/masoodehghan/restful-api-discussion-forum.git </li>
 <li> Rename sample.env to .env and fill data. </li>
 <li> docker-compose up </li>
+<li> docker-compose exec app python manage.py migrate </li>
 </ol>
 or
 <ol>
