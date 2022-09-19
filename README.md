@@ -7,6 +7,7 @@
 <li> git clone https://github.com/masoodehghan/restful-api-discussion-forum.git </li>
 <li> Rename sample.env to .env and fill data. </li>
 <li> docker-compose up </li>
+<li> docker-compose exec app python manage.py migrate </li>
 </ol>
 or
 <ol>
@@ -15,11 +16,5 @@ or
 <li> python -m pip install pipenv </li>
 <li> pipenv shell </li>
 <li> pipenv install </li>
-</ol>
-<br>
-and to use nginx image for this app excute: <br>
-<p> docker pull masood04/forum_nginx:latest </p>
-<br>
- 
-
+</ol> 
 </div>
