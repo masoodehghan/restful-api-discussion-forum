@@ -5,7 +5,6 @@ from .signals import create_unique_slug
 
 
 class AnswerSerializer(serializers.ModelSerializer):
-
     owner = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:
@@ -26,11 +25,14 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class QuestionUpdateSerializer(serializers.ModelSerializer):
-
     class BestAnswerField(serializers.PrimaryKeyRelatedField):
 
         def get_queryset(self):
-            return Answer.objects.filter(question=self.context['question_id'])
+            question_id = self.context.get('question_id')
+            answers = Answer.objects.filter(question_id=question_id) if \
+                question_id else Answer.objects.all()
+
+            return answers
 
     best_answer = BestAnswerField(required=False, allow_null=True)
     tags = TagSerializer(many=True, required=False)
@@ -105,7 +107,6 @@ class QuestionUpdateSerializer(serializers.ModelSerializer):
 
 
 class QuestionRetrieveSerializer(serializers.ModelSerializer):
-
     answers = AnswerSerializer(many=True, read_only=True)
     owner = serializers.CharField(source='owner.username', read_only=True)
     tags = TagSerializer(many=True, required=False, read_only=True)
@@ -164,7 +165,6 @@ class QuestionListCreateSerializer(serializers.ModelSerializer):
 
 
 class VoteSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Vote
         fields = '__all__'

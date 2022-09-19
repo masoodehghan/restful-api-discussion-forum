@@ -64,7 +64,7 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwner]
 
     lookup_field = 'slug'
-    object = None
+    _object = None
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:
@@ -92,12 +92,13 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
         return self.retrieve(request, *args, **kwargs)
 
     def get_object(self):
-        self.object = super().get_object()
-        return self.object
+        self._object = super().get_object()
+        return self._object
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['question_id'] = self.object.id
+        if self.request.path != '/api/v1/docs/':
+            context['question_id'] = self._object.id
         return context
 
 
